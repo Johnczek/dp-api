@@ -1,4 +1,4 @@
-package cz.johnczek.dpapi.security.configuration;
+package cz.johnczek.dpapi.core.security;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;

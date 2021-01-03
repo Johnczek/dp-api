@@ -6,7 +6,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,7 +20,7 @@ import java.util.Set;
 @Setter
 @Entity
 @NoArgsConstructor
-@Table(name = "role")
+@Table(name = "role", schema = "public")
 public class RoleEntity extends AbstractIdBasedEntity<Long> {
 
     @Enumerated(value = EnumType.STRING)

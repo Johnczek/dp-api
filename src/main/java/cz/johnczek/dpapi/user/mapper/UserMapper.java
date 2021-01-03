@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
-    @Mapping(target = "password", ignore = true)
     @Mapping(target = "username", source = "email")
     @Mapping(target = "authorities", source = "user", qualifiedByName = "rolesToAuthorities")
     LoggedUserDetails entityToLoggedUserDetails(UserEntity user);

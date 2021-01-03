@@ -20,7 +20,6 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
-
     private static final String DEFAULT_MESSAGE = "V aplikaci nastala chyba";
 
     private final MessageSource messageSource;

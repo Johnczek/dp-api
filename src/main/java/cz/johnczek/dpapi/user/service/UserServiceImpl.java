@@ -2,6 +2,7 @@ package cz.johnczek.dpapi.user.service;
 
 import cz.johnczek.dpapi.core.errorhandling.exception.UserNotFoundRestException;
 import cz.johnczek.dpapi.user.dto.LoggedUserDetails;
+import cz.johnczek.dpapi.user.entity.UserEntity;
 import cz.johnczek.dpapi.user.mapper.UserMapper;
 import cz.johnczek.dpapi.user.repository.UserRepository;
 import lombok.NonNull;

@@ -7,6 +7,7 @@ import cz.johnczek.dpapi.user.repository.UserRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -17,7 +18,8 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     @Override
-    public LoggedUserDetails findByEmailOrFail(@NonNull String email) {
+    @Transactional(readOnly = true)
+    public LoggedUserDetails loadUserByUsername(@NonNull String email) {
         return userRepository.findByEmailWithRolesFetched(email)
                 .map(userMapper::entityToLoggedUserDetails)
                 .orElseThrow(UserNotFoundRestException::new);

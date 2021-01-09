@@ -22,6 +22,7 @@
 		<io.jsonwebtoken.version>0.11.2</io.jsonwebtoken.version>
 		<org.apache.commons.commons-text.version>1.9</org.apache.commons.commons-text.version>
 		<org.apache.maven.plugins.maven-compiler-plugin.version>3.8.1</org.apache.maven.plugins.maven-compiler-plugin.version>
+		<org.springdoc.springdoc-openapi-ui.version>1.5.2</org.springdoc.springdoc-openapi-ui.version>
 	</properties>
 
 	<dependencies>
@@ -114,6 +115,12 @@
 		<dependency>
 			<groupId>jakarta.validation</groupId>
 			<artifactId>jakarta.validation-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>${org.springdoc.springdoc-openapi-ui.version}</version>
 		</dependency>
 	</dependencies>
 

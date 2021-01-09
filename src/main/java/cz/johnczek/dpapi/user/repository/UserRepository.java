@@ -12,4 +12,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     @Query("select u from UserEntity u left join fetch u.roles where u.email = :email")
     Optional<UserEntity> findByEmailWithRolesFetched(@NonNull @Param("email") String email);
+
+    boolean existsByEmail(@NonNull String email);
 }

@@ -1,6 +1,7 @@
 package cz.johnczek.dpapi.core.security.jwt;
 
 import cz.johnczek.dpapi.user.dto.LoggedUserDetails;
+import cz.johnczek.dpapi.user.service.UserDetailsServiceImpl;
 import cz.johnczek.dpapi.user.service.UserService;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +26,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     private JwtUtils jwtUtils;
 
     @Autowired
-    private UserService userService;
+    private UserDetailsServiceImpl userService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

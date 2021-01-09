@@ -45,7 +45,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return prepareResponseEntity(exception, HttpStatus.METHOD_NOT_ALLOWED);
     }
 
-    @ExceptionHandler(BaseRestException.class)
+    @ExceptionHandler({BaseRestException.class, BaseInternalServerErrorRestException.class})
     public ResponseEntity<String> handleDefault(Throwable t) {
         return new ResponseEntity<>(t.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }

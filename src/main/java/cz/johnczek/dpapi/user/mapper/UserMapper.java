@@ -2,6 +2,7 @@ package cz.johnczek.dpapi.user.mapper;
 
 import cz.johnczek.dpapi.user.dto.LoggedUserDetails;
 import cz.johnczek.dpapi.user.entity.UserEntity;
+import cz.johnczek.dpapi.user.request.RegisterRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -17,6 +18,9 @@ public interface UserMapper {
     @Mapping(target = "username", source = "email")
     @Mapping(target = "authorities", source = "user", qualifiedByName = "rolesToAuthorities")
     LoggedUserDetails entityToLoggedUserDetails(UserEntity user);
+
+    @Mapping(target = "password", ignore = true)
+    UserEntity registerRequestToEntity(RegisterRequest registerRequest);
 
     @Named("rolesToAuthorities")
     default List<GrantedAuthority> rolesToAuthorities(UserEntity user) {

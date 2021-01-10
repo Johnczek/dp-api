@@ -1,6 +1,7 @@
 package cz.johnczek.dpapi.user.service;
 
 import cz.johnczek.dpapi.user.entity.RoleEntity;
+import cz.johnczek.dpapi.user.enums.RoleEnum;
 import cz.johnczek.dpapi.user.repository.RoleRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<RoleEntity> findByCode(@NonNull String code) {
-        return roleRepository.findByCode(code);
+    public Optional<RoleEntity> findByCode(@NonNull RoleEnum role) {
+        return roleRepository.findByCode(role);
     }
 }

@@ -1,6 +1,7 @@
 package cz.johnczek.dpapi.user.entity;
 
 import cz.johnczek.dpapi.core.persistence.AbstractIdBasedEntity;
+import cz.johnczek.dpapi.file.entity.FileEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,7 +9,9 @@ import lombok.Setter;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -27,8 +30,6 @@ public class UserEntity extends AbstractIdBasedEntity<Long> {
 
     private String email;
 
-    private String avatar;
-
     private String password;
 
     private String description;
@@ -37,4 +38,8 @@ public class UserEntity extends AbstractIdBasedEntity<Long> {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserRoleEntity> roles = new HashSet<>();
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "avatar_id")
+    private FileEntity avatar;
 }

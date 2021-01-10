@@ -118,7 +118,6 @@ public class UserServiceImpl implements UserService {
 
         user.setFirstName(patchRequest.getFirstName());
         user.setLastName(patchRequest.getLastName());
-        user.setAvatar(patchRequest.getAvatar());
         user.setDescription(patchRequest.getDescription());
     }
 }

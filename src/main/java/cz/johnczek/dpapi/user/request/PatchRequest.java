@@ -21,8 +21,5 @@ public class PatchRequest {
     @Size(max = 128)
     private String lastName;
 
-    @Size(max = 128)
-    private String avatar;
-
     private String description;
 }

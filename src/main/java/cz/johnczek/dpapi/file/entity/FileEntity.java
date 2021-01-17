@@ -18,7 +18,9 @@ import javax.persistence.Table;
 @Table(name = "file", schema = "public")
 public class FileEntity extends AbstractIdBasedEntity<Long> {
 
-    private String filePath;
+    private String fileIdentifier;
+
+    private String fileExtension;
 
     @Enumerated(value = EnumType.STRING)
     private FileType type;

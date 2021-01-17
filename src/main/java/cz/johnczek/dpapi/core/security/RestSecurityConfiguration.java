@@ -51,20 +51,29 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     protected void configure(HttpSecurity http) throws Exception {
 
+//        http.cors().and().csrf().disable()
+//                .exceptionHandling()
+//                .authenticationEntryPoint(unauthorizedHandler)
+//                .and()
+//                .sessionManagement()
+//                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+//                .authorizeRequests()
+//                    .antMatchers("/user/login").permitAll()
+//                    .antMatchers("/user/register").permitAll()
+//                    .antMatchers("/user/{userId}/detail").permitAll()
+//                    .antMatchers("/swagger-ui/**").permitAll()
+//                    .antMatchers("/v3/**").permitAll()
+//                    .antMatchers("/hello/unauthorized").permitAll()
+//                    .anyRequest().authenticated();
+
         http.cors().and().csrf().disable()
                 .exceptionHandling()
                 .authenticationEntryPoint(unauthorizedHandler)
                 .and()
                 .sessionManagement()
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .authorizeRequests()
-                    .antMatchers("/user/login").permitAll()
-                    .antMatchers("/user/register").permitAll()
-                    .antMatchers("/user/{userId}/detail").permitAll()
-                    .antMatchers("/swagger-ui/**").permitAll()
-                    .antMatchers("/v3/**").permitAll()
-                    .antMatchers("/hello/unauthorized").permitAll()
-                    .anyRequest().authenticated();
+                .anyRequest().permitAll();
 
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
     }

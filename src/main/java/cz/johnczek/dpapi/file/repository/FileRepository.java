@@ -8,8 +8,6 @@ import java.util.Optional;
 
 public interface FileRepository extends JpaRepository<FileEntity, Long> {
 
-    boolean existsByFilePath(@NonNull String filePath);
-
-    Optional<FileEntity> findByFilePath(@NonNull String filePath);
+    Optional<FileEntity> findByFileIdentifier(@NonNull String filePath);
 
 }

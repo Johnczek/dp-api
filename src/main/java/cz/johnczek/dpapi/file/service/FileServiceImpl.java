@@ -38,7 +38,8 @@ public class FileServiceImpl implements FileService {
     @Override
     public Optional<String> storeFile(@NonNull MultipartFile multipartFile, @NonNull FileType fileType) {
 
-        if (ObjectUtils.isEmpty(multipartFile.getOriginalFilename())) {
+        String originalFileName = multipartFile.getOriginalFilename();
+        if (ObjectUtils.isEmpty(originalFileName)) {
             log.error("Error uploading image. Multipart file original filename is null or empty: {}",
                     multipartFile.getOriginalFilename());
             throw new FileStorageInternalErrorRestException();
@@ -47,10 +48,14 @@ public class FileServiceImpl implements FileService {
         UUID uuid = UUID.randomUUID();
 
         try {
-            Path target = getFileLocation().resolve(fileType.getFolder()).resolve(uuid.toString());
+            String extension = originalFileName.substring(originalFileName.lastIndexOf('.') + 1);
+            Path targetDirectory = getFileLocation().resolve(fileType.getFolder());
+            Files.createDirectories(targetDirectory);
+
+            Path target = targetDirectory.resolve(uuid.toString() + '.' + extension);
             Files.copy(multipartFile.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
 
-            fileRepository.save(prepare(uuid.toString(), FileType.USER_AVATAR));
+            fileRepository.save(prepare(uuid.toString(), extension, FileType.USER_AVATAR));
 
         } catch (IOException e) {
             log.error("Error uploading image. File {} could not be stored", multipartFile.getOriginalFilename(), e);
@@ -63,14 +68,16 @@ public class FileServiceImpl implements FileService {
 
     public Optional<Resource> loadFile(@NonNull String fileUUID) {
 
-        FileEntity fileEntity = fileRepository.findByFilePath(fileUUID).orElseThrow(() -> {
+        FileEntity fileEntity = fileRepository.findByFileIdentifier(fileUUID).orElseThrow(() -> {
             log.warn("File with UUID {} not found in database", fileUUID);
 
             return new FileNotFoundRestException(fileUUID);
         });
 
         try {
-            Path filePath = getFileLocation().resolve(fileEntity.getType().getFolder()).resolve(fileEntity.getFilePath());
+            Path filePath = getFileLocation()
+                    .resolve(fileEntity.getType().getFolder())
+                    .resolve(fileEntity.getFileIdentifier() + '.' + fileEntity.getFileExtension());
 
             Resource resource = new UrlResource(filePath.toUri());
 
@@ -89,9 +96,10 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    private FileEntity prepare(@NonNull String path, @NonNull FileType fileType) {
+    private FileEntity prepare(@NonNull String identifier, @NonNull String extension, @NonNull FileType fileType) {
         FileEntity result = new FileEntity();
-        result.setFilePath(path);
+        result.setFileIdentifier(identifier);
+        result.setFileExtension(extension);
         result.setType(fileType);
 
         return result;

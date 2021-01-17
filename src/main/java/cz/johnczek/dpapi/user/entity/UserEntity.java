@@ -2,6 +2,7 @@ package cz.johnczek.dpapi.user.entity;
 
 import cz.johnczek.dpapi.core.persistence.AbstractIdBasedEntity;
 import cz.johnczek.dpapi.file.entity.FileEntity;
+import cz.johnczek.dpapi.item.entity.ItemBidEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -38,6 +39,9 @@ public class UserEntity extends AbstractIdBasedEntity<Long> {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserRoleEntity> roles = new HashSet<>();
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "buyer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ItemBidEntity> bids = new HashSet<>();
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "avatar_id")

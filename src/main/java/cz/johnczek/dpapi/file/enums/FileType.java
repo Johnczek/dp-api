@@ -8,7 +8,10 @@ import lombok.Getter;
 public enum FileType {
 
     USER_AVATAR("user-avatar"),
-    UNKNOWN("unknown");
+    UNKNOWN("unknown"),
+    DELIVERY_LOGO("delivery-logo"),
+    PAYMENT_LOGO("payment-logo"),
+    ITEM_PICTURE("item-picture");
 
     private final String folder;
 }

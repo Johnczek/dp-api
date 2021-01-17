@@ -23,6 +23,7 @@
 		<org.apache.commons.commons-text.version>1.9</org.apache.commons.commons-text.version>
 		<org.apache.maven.plugins.maven-compiler-plugin.version>3.8.1</org.apache.maven.plugins.maven-compiler-plugin.version>
 		<org.springdoc.springdoc-openapi-ui.version>1.5.2</org.springdoc.springdoc-openapi-ui.version>
+		<flywaydb.version>7.4.0</flywaydb.version>
 	</properties>
 
 	<dependencies>
@@ -173,6 +174,16 @@
 							<version>${org.mapstruct.version}</version>
 						</path>
 					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-maven-plugin</artifactId>
+				<configuration>
+					<url>jdbc:postgresql://localhost:5440/dp-api</url>
+					<user>dp-api</user>
+					<password>dp-api</password>
 				</configuration>
 			</plugin>
 		</plugins>

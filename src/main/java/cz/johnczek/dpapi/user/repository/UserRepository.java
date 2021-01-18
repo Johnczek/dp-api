@@ -7,13 +7,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
+import java.util.Set;
 
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     @Query("select u from UserEntity u left join fetch u.roles where u.email = :email")
     Optional<UserEntity> findByEmailWithRolesFetched(@NonNull @Param("email") String email);
 
-    boolean existsByEmail(@NonNull String email);
+    @Query("select s from ItemEntity i left join i.seller s left join fetch s.avatar a where i.id in (:itemIds)")
+    Set<UserEntity> findByItemIdsWithAvatarFetched(@Param("itemIds") Set<Long> itemIds);
 
-    Optional<UserEntity> findById(long id);
+    boolean existsByEmail(String email);
 }

@@ -24,6 +24,7 @@
 		<org.apache.maven.plugins.maven-compiler-plugin.version>3.8.1</org.apache.maven.plugins.maven-compiler-plugin.version>
 		<org.springdoc.springdoc-openapi-ui.version>1.5.2</org.springdoc.springdoc-openapi-ui.version>
 		<flywaydb.version>7.4.0</flywaydb.version>
+		<com.google.guava.version>30.1-jre</com.google.guava.version>
 	</properties>
 
 	<dependencies>
@@ -133,6 +134,13 @@
 			<artifactId>springdoc-openapi-ui</artifactId>
 			<version>${org.springdoc.springdoc-openapi-ui.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${com.google.guava.version}</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

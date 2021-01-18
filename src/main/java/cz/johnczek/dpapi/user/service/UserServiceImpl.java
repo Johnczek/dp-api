@@ -1,5 +1,6 @@
 package cz.johnczek.dpapi.user.service;
 
+import com.google.common.collect.Maps;
 import cz.johnczek.dpapi.core.errorhandling.exception.BaseForbiddenRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.RoleNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.UserAlreadyExistsRestException;
@@ -7,6 +8,7 @@ import cz.johnczek.dpapi.core.errorhandling.exception.UserNotFoundRestException;
 import cz.johnczek.dpapi.core.security.SecurityUtils;
 import cz.johnczek.dpapi.core.security.jwt.JwtUtils;
 import cz.johnczek.dpapi.user.dto.LoggedUserDetails;
+import cz.johnczek.dpapi.user.dto.UserDto;
 import cz.johnczek.dpapi.user.entity.RoleEntity;
 import cz.johnczek.dpapi.user.entity.UserEntity;
 import cz.johnczek.dpapi.user.entity.UserRoleEntity;
@@ -27,8 +29,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -119,5 +127,17 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(patchRequest.getFirstName());
         user.setLastName(patchRequest.getLastName());
         user.setDescription(patchRequest.getDescription());
+    }
+
+    @Override
+    public Map<Long, UserDto> findByItemIds(@NonNull Set<Long> itemIds) {
+        if (CollectionUtils.isEmpty(itemIds)) {
+            return Collections.emptyMap();
+        }
+
+        List<UserDto> users = userRepository.findByItemIdsWithAvatarFetched(itemIds).stream()
+                .map(userMapper::entityToDto).collect(Collectors.toList());
+
+        return Maps.uniqueIndex(users, UserDto::getId);
     }
 }

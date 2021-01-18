@@ -1,6 +1,7 @@
 package cz.johnczek.dpapi.item.entity;
 
 import cz.johnczek.dpapi.core.persistence.AbstractIdBasedEntity;
+import cz.johnczek.dpapi.delivery.entity.DeliveryEntity;
 import cz.johnczek.dpapi.file.entity.FileEntity;
 import cz.johnczek.dpapi.item.enums.ItemState;
 import cz.johnczek.dpapi.payment.entity.PaymentEntity;
@@ -52,7 +53,7 @@ public class ItemEntity extends AbstractIdBasedEntity<Long> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "delivery_id")
-    private PaymentEntity delivery;
+    private DeliveryEntity delivery;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id")

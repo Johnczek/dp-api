@@ -96,6 +96,11 @@ public class FileServiceImpl implements FileService {
         }
     }
 
+    @Override
+    public Optional<String> findUUIDByItemId(long itemId) {
+        return Optional.empty();
+    }
+
     private FileEntity prepare(@NonNull String identifier, @NonNull String extension, @NonNull FileType fileType) {
         FileEntity result = new FileEntity();
         result.setFileIdentifier(identifier);

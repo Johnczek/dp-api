@@ -12,4 +12,6 @@ public interface FileService {
     Optional<String> storeFile(@NonNull MultipartFile multipartFile, @NonNull FileType fileType);
 
     Optional<Resource> loadFile(@NonNull String fileUUID);
+
+    Optional<String> findUUIDByItemId(long itemId);
 }

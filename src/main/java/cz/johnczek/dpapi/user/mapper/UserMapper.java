@@ -1,6 +1,7 @@
 package cz.johnczek.dpapi.user.mapper;
 
 import cz.johnczek.dpapi.user.dto.LoggedUserDetails;
+import cz.johnczek.dpapi.user.dto.UserDto;
 import cz.johnczek.dpapi.user.entity.UserEntity;
 import cz.johnczek.dpapi.user.request.RegisterRequest;
 import org.mapstruct.Mapper;
@@ -28,4 +29,7 @@ public interface UserMapper {
                 .map(role -> new SimpleGrantedAuthority(role.getRole().getCode().name()))
                 .collect(Collectors.toList());
     }
+
+    @Mapping(target = "avatarUUID", source = "avatar.fileIdentifier")
+    UserDto entityToDto(UserEntity source);
 }

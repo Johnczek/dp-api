@@ -32,6 +32,8 @@ public class ItemDto {
 
     private BigDecimal startingPrice;
 
+    private ItemHighestBidDto itemHighestBid;
+
     private PaymentDto payment;
 
     private DeliveryDto delivery;

@@ -11,11 +11,22 @@ import java.util.Set;
 
 public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
 
+    @Query("select p " +
+            "from PaymentEntity p " +
+            "left join fetch p.logo ")
     List<PaymentEntity> findAll();
 
+    @Query("select p " +
+            "from PaymentEntity p " +
+            "left join fetch p.logo " +
+            "where p.id = :id")
     Optional<PaymentEntity> findById(long id);
 
-    @Query("select p from ItemEntity i left join i.payment p where i.id in (:itemIds)")
+    @Query("select p " +
+            "from ItemEntity i " +
+            "left join i.payment p " +
+            "left join fetch p.logo " +
+            "where i.id in (:itemIds)")
     Set<PaymentEntity> findByItemIds(@Param("itemIds") Set<Long> itemIds);
 
 }

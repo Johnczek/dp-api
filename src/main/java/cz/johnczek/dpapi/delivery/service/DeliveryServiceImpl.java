@@ -5,7 +5,6 @@ import cz.johnczek.dpapi.delivery.dto.DeliveryDto;
 import cz.johnczek.dpapi.delivery.entity.DeliveryEntity;
 import cz.johnczek.dpapi.delivery.mapper.DeliveryMapper;
 import cz.johnczek.dpapi.delivery.repository.DeliveryRepository;
-import cz.johnczek.dpapi.payment.dto.PaymentDto;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -1,6 +1,7 @@
 package cz.johnczek.dpapi.item.service;
 
 import cz.johnczek.dpapi.item.dto.ItemDto;
+import cz.johnczek.dpapi.item.request.ItemChangeDeliveryRequest;
 import lombok.NonNull;
 
 import java.util.List;
@@ -14,4 +15,8 @@ public interface ItemService {
     Optional<ItemDto> findByItemId(@NonNull long itemId);
 
     List<ItemDto> findByItemIds(@NonNull Set<Long> itemIds);
+
+    void changeItemDelivery(
+            long itemId,
+            @NonNull ItemChangeDeliveryRequest itemChangeDeliveryRequest);
 }

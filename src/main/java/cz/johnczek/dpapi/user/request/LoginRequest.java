@@ -14,10 +14,10 @@ import javax.validation.constraints.NotBlank;
 public class LoginRequest {
 
     @NotBlank
-    @Schema(example = "admin@admin.com")
+    @Schema(example = "user@user.com")
     private String email;
 
     @NotBlank
-    @Schema(example = "admin")
+    @Schema(example = "user")
     private String password;
 }

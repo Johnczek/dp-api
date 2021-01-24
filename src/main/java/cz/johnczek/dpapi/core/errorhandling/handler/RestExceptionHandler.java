@@ -1,6 +1,11 @@
 package cz.johnczek.dpapi.core.errorhandling.handler;
 
-import cz.johnczek.dpapi.core.errorhandling.exception.*;
+import cz.johnczek.dpapi.core.errorhandling.exception.BaseBadRequestRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.BaseForbiddenRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.BaseInternalServerErrorRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.BaseMethodNotAllowedRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.BaseNotFoundRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.BaseRestException;
 import cz.johnczek.dpapi.core.rest.response.BaseRestResponse;
 import cz.johnczek.dpapi.core.rest.response.RestMessage;
 import cz.johnczek.dpapi.core.rest.response.RestMessageTypeEnum;

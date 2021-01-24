@@ -11,10 +11,21 @@ import java.util.Set;
 
 public interface DeliveryRepository extends JpaRepository<DeliveryEntity, Long> {
 
+    @Query("select d " +
+            "from DeliveryEntity d " +
+            "left join fetch d.logo")
     List<DeliveryEntity> findAll();
 
+    @Query("select d " +
+            "from DeliveryEntity d " +
+            "left join fetch d.logo " +
+            "where d.id = :id")
     Optional<DeliveryEntity> findById(long id);
 
-    @Query("select d from ItemEntity i left join i.delivery d where i.id in (:itemIds)")
+    @Query("select d " +
+            "from ItemEntity i " +
+            "left join i.delivery d " +
+            "left join fetch d.logo " +
+            "where i.id in (:itemIds)")
     Set<DeliveryEntity> findByItemIds(@Param("itemIds") Set<Long> itemIds);
 }

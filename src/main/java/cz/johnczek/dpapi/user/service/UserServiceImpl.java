@@ -2,11 +2,14 @@ package cz.johnczek.dpapi.user.service;
 
 import com.google.common.collect.Maps;
 import cz.johnczek.dpapi.core.errorhandling.exception.BaseForbiddenRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.FileNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.RoleNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.UserAlreadyExistsRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.UserNotFoundRestException;
 import cz.johnczek.dpapi.core.security.SecurityUtils;
 import cz.johnczek.dpapi.core.security.jwt.JwtUtils;
+import cz.johnczek.dpapi.file.entity.FileEntity;
+import cz.johnczek.dpapi.file.service.FileService;
 import cz.johnczek.dpapi.user.dto.LoggedUserDetails;
 import cz.johnczek.dpapi.user.dto.UserDto;
 import cz.johnczek.dpapi.user.entity.RoleEntity;
@@ -16,8 +19,10 @@ import cz.johnczek.dpapi.user.enums.RoleEnum;
 import cz.johnczek.dpapi.user.mapper.UserMapper;
 import cz.johnczek.dpapi.user.repository.UserRepository;
 import cz.johnczek.dpapi.user.repository.UserRoleRepository;
-import cz.johnczek.dpapi.user.request.PatchRequest;
 import cz.johnczek.dpapi.user.request.RegisterRequest;
+import cz.johnczek.dpapi.user.request.UserChangeAvatarRequest;
+import cz.johnczek.dpapi.user.request.UserChangePasswordRequest;
+import cz.johnczek.dpapi.user.request.UserChangeRequest;
 import cz.johnczek.dpapi.user.response.JwtResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +59,8 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     private final RoleService roleService;
+
+    private final FileService fileService;
 
     private final UserRoleRepository userRoleRepository;
 
@@ -103,33 +110,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void patch(long id, @NonNull PatchRequest patchRequest) {
+    public void patch(long id, @NonNull UserChangeRequest userChangeRequest) {
 
-        LoggedUserDetails loggedUser = SecurityUtils.getLoggedUser().orElseThrow(() -> {
-            log.error("Update of user with id {} failed. Logged person not found", id);
+        UserEntity user = checkUserPermissionEditability(id);
 
-            return new BaseForbiddenRestException();
-        });
-
-        if (!loggedUser.getId().equals(id)) {
-            log.error("Update of user with id {} failed. Currently logged persons id {} does not match",
-                    id, loggedUser.getId());
-
-            throw new BaseForbiddenRestException();
-        }
-
-        UserEntity user = userRepository.findById(id).orElseThrow(() -> {
-            log.error("Update of user with id {} failed. User with given id not found", id);
-
-            return new UserNotFoundRestException(id);
-        });
-
-        user.setFirstName(patchRequest.getFirstName());
-        user.setLastName(patchRequest.getLastName());
-        user.setDescription(patchRequest.getDescription());
+        user.setFirstName(userChangeRequest.getFirstName());
+        user.setLastName(userChangeRequest.getLastName());
+        user.setDescription(userChangeRequest.getDescription());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Map<Long, UserDto> findByItemIds(@NonNull Set<Long> itemIds) {
         if (CollectionUtils.isEmpty(itemIds)) {
             return Collections.emptyMap();
@@ -139,5 +130,53 @@ public class UserServiceImpl implements UserService {
                 .map(userMapper::entityToDto).collect(Collectors.toList());
 
         return Maps.uniqueIndex(users, UserDto::getId);
+    }
+
+    @Override
+    @Transactional
+    public void updateUserAvatar(long id, @NonNull UserChangeAvatarRequest request) {
+
+        String pictureUUID = request.getAvatarUUID();
+        FileEntity file = fileService.findByFileIdentifier(pictureUUID).orElseThrow(() -> {
+
+            log.error("Update of user avatar with id {} failed. Item not with identifier {} found", id, pictureUUID);
+
+            return new FileNotFoundRestException(pictureUUID);
+        });
+
+        UserEntity user = checkUserPermissionEditability(id);
+        user.setAvatar(file);
+    }
+
+    @Override
+    @Transactional
+    public void updateUserPassword(long id, @NonNull UserChangePasswordRequest request) {
+
+        UserEntity user = checkUserPermissionEditability(id);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+    }
+
+    private UserEntity checkUserPermissionEditability(long id) {
+
+        LoggedUserDetails loggedUser = SecurityUtils.getLoggedUser().orElseThrow(() -> {
+            log.error("Update of user avatar with id {} failed. Logged person not found", id);
+
+            return new BaseForbiddenRestException();
+        });
+
+        UserEntity user = userRepository.findById(id).orElseThrow(() -> {
+            log.error("Update of user avatar with id {} failed. User not found", id);
+
+            return new UserNotFoundRestException(id);
+        });
+
+        if (!user.getId().equals(loggedUser.getId())) {
+            log.error("Update of user avatar with id {} failed. Currently logged person with id {} does not match",
+                    id, loggedUser.getId());
+
+            throw new BaseForbiddenRestException();
+        }
+
+        return user;
     }
 }

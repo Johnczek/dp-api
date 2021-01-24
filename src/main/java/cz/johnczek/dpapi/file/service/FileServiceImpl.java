@@ -97,8 +97,8 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public Optional<String> findUUIDByItemId(long itemId) {
-        return Optional.empty();
+    public Optional<FileEntity> findByFileIdentifier(@NonNull String uuid) {
+        return fileRepository.findByFileIdentifier(uuid);
     }
 
     private FileEntity prepare(@NonNull String identifier, @NonNull String extension, @NonNull FileType fileType) {

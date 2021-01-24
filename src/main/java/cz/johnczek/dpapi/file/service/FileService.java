@@ -1,5 +1,6 @@
 package cz.johnczek.dpapi.file.service;
 
+import cz.johnczek.dpapi.file.entity.FileEntity;
 import cz.johnczek.dpapi.file.enums.FileType;
 import lombok.NonNull;
 import org.springframework.core.io.Resource;
@@ -13,5 +14,5 @@ public interface FileService {
 
     Optional<Resource> loadFile(@NonNull String fileUUID);
 
-    Optional<String> findUUIDByItemId(long itemId);
+    Optional<FileEntity> findByFileIdentifier(@NonNull String uuid);
 }

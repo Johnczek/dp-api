@@ -23,8 +23,9 @@ public interface ItemRepository extends JpaRepository<ItemEntity, Long> {
             "left join fetch i.picture " +
             "left join i.delivery " +
             "left join i.payment " +
-            "left join i.seller")
-    Set<ItemEntity> findAllWithFieldsFetched();
+            "left join i.seller " +
+            "where i.state = cz.johnczek.dpapi.item.enums.ItemState.ACTIVE")
+    Set<ItemEntity> findAllActiveWithFieldsFetched();
 
     @Query("select i from ItemEntity i " +
             "left join fetch i.picture " +

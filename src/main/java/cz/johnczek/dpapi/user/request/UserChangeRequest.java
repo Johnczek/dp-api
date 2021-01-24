@@ -4,14 +4,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class PatchRequest {
+public class UserChangeRequest {
 
     @NotBlank
     @Size(max = 128)

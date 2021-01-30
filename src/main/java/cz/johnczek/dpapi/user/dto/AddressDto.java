@@ -9,6 +9,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class AddressDto {
 
+    private long id;
+
     private String street;
 
     private String streetNumber;

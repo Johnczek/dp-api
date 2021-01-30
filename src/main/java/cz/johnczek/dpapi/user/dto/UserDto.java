@@ -4,6 +4,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Setter
 @Getter
 @NoArgsConstructor
@@ -20,4 +23,8 @@ public class UserDto {
     private String description;
 
     private String avatarUUID;
+
+    private List<BankAccountDto> bankAccounts = new ArrayList<>();
+
+    private List<AddressDto> addresses = new ArrayList<>();
 }

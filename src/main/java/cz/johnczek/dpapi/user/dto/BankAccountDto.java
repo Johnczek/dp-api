@@ -9,6 +9,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class BankAccountDto {
 
+    private long id;
+
     private long prefix;
 
     private long number;

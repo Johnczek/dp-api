@@ -1,11 +1,12 @@
 package cz.johnczek.dpapi.user.controller;
 
-import cz.johnczek.dpapi.item.request.ItemChangePictureRequest;
+import cz.johnczek.dpapi.user.request.AddressCreationRequest;
+import cz.johnczek.dpapi.user.request.BankAccountCreationRequest;
 import cz.johnczek.dpapi.user.request.LoginRequest;
+import cz.johnczek.dpapi.user.request.RegisterRequest;
 import cz.johnczek.dpapi.user.request.UserChangeAvatarRequest;
 import cz.johnczek.dpapi.user.request.UserChangePasswordRequest;
 import cz.johnczek.dpapi.user.request.UserChangeRequest;
-import cz.johnczek.dpapi.user.request.RegisterRequest;
 import cz.johnczek.dpapi.user.response.JwtResponse;
 import cz.johnczek.dpapi.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -86,6 +88,38 @@ public class UserController {
                                                        @Valid @RequestBody UserChangePasswordRequest request) {
 
         userService.updateUserPassword(id, request);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/{userId}/bank-account")
+    public ResponseEntity<HttpStatus> addBankAccount(@PathVariable("userId") long userId,
+                                                         @Valid @RequestBody BankAccountCreationRequest request) {
+
+        userService.addBankAccount(userId, request);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping(value = "/{userId}/bank-account/{bankAccountId}")
+    public ResponseEntity<HttpStatus> deleteBankAccount(@PathVariable("userId") long userId,
+                                                         @PathVariable("bankAccountId") long bankAccountId) {
+
+        userService.deleteBankAccount(bankAccountId, userId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/{userId}/address")
+    public ResponseEntity<HttpStatus> addAddress(@PathVariable("userId") long userId,
+                                                         @Valid @RequestBody AddressCreationRequest request) {
+
+        userService.addAddress(userId, request);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping(value = "/{userId}/address/{addressId}")
+    public ResponseEntity<HttpStatus> deleteAddress(@PathVariable("userId") long userId,
+                                                         @PathVariable("addressId") long addressId) {
+
+        userService.deleteAddress(addressId, userId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

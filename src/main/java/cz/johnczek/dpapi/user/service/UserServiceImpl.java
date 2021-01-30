@@ -19,6 +19,8 @@ import cz.johnczek.dpapi.user.enums.RoleEnum;
 import cz.johnczek.dpapi.user.mapper.UserMapper;
 import cz.johnczek.dpapi.user.repository.UserRepository;
 import cz.johnczek.dpapi.user.repository.UserRoleRepository;
+import cz.johnczek.dpapi.user.request.AddressCreationRequest;
+import cz.johnczek.dpapi.user.request.BankAccountCreationRequest;
 import cz.johnczek.dpapi.user.request.RegisterRequest;
 import cz.johnczek.dpapi.user.request.UserChangeAvatarRequest;
 import cz.johnczek.dpapi.user.request.UserChangePasswordRequest;
@@ -63,6 +65,10 @@ public class UserServiceImpl implements UserService {
     private final FileService fileService;
 
     private final UserRoleRepository userRoleRepository;
+
+    private final BankAccountService bankAccountService;
+
+    private final AddressService addressService;
 
     @Override
     @Transactional(readOnly = true)
@@ -156,6 +162,38 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
     }
 
+    @Override
+    @Transactional
+    public void addBankAccount(long userId, @NonNull BankAccountCreationRequest request) {
+        UserEntity user = checkUserPermissionEditability(userId);
+
+        bankAccountService.addBankAccount(user, request);
+    }
+
+    @Override
+    @Transactional
+    public void deleteBankAccount(long bankAccountId, long userId) {
+        checkUserPermissionEditability(userId);
+
+        bankAccountService.deleteBankAccount(bankAccountId, userId);
+    }
+
+    @Override
+    @Transactional
+    public void addAddress(long userId, @NonNull AddressCreationRequest request) {
+        UserEntity user = checkUserPermissionEditability(userId);
+
+        addressService.addAddress(user, request);
+    }
+
+    @Override
+    @Transactional
+    public void deleteAddress(long addressId, long userId) {
+        checkUserPermissionEditability(userId);
+
+        addressService.deleteAddress(addressId, userId);
+    }
+
     private UserEntity checkUserPermissionEditability(long id) {
 
         LoggedUserDetails loggedUser = SecurityUtils.getLoggedUser().orElseThrow(() -> {
@@ -165,13 +203,13 @@ public class UserServiceImpl implements UserService {
         });
 
         UserEntity user = userRepository.findById(id).orElseThrow(() -> {
-            log.error("Update of user avatar with id {} failed. User not found", id);
+            log.error("Update of user with id {} failed. User not found", id);
 
             return new UserNotFoundRestException(id);
         });
 
         if (!user.getId().equals(loggedUser.getId())) {
-            log.error("Update of user avatar with id {} failed. Currently logged person with id {} does not match",
+            log.error("Update of user with id {} failed. Currently logged person with id {} does not match",
                     id, loggedUser.getId());
 
             throw new BaseForbiddenRestException();

@@ -21,9 +21,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AddressServiceImpl implements AddressService {
 
-    private AddressRepository addressRepository;
+    private final AddressRepository addressRepository;
 
-    private AddressMapper addressMapper;
+    private final AddressMapper addressMapper;
 
     @Override
     @Transactional

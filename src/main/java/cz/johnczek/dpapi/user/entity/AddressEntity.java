@@ -22,7 +22,7 @@ public class AddressEntity extends AbstractIdBasedEntity<Long> {
 
     private String streetNumber;
 
-    private String zipCode;
+    private String zipcode;
 
     private String city;
 

@@ -11,7 +11,7 @@ public class BankAccountDto {
 
     private long id;
 
-    private long prefix;
+    private Long prefix;
 
     private long number;
 

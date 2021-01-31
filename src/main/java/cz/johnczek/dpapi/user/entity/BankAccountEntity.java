@@ -18,7 +18,7 @@ import javax.persistence.Table;
 @Table(name = "bank_account", schema = "public")
 public class BankAccountEntity extends AbstractIdBasedEntity<Long> {
 
-    private long prefix;
+    private Long prefix;
 
     private long number;
 

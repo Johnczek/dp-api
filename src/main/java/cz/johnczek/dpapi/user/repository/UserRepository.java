@@ -25,4 +25,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Set<UserEntity> findByItemIdsWithAvatarFetched(@Param("itemIds") Set<Long> itemIds);
 
     boolean existsByEmail(String email);
+
+    @Query("select u from UserEntity u where u.id = :userId")
+    Optional<UserEntity> findByUserId(@Param("userId") long userId);
 }

@@ -1,6 +1,7 @@
 package cz.johnczek.dpapi.user.service;
 
 import cz.johnczek.dpapi.core.errorhandling.exception.AddressNotFoundRestException;
+import cz.johnczek.dpapi.user.dto.AddressDto;
 import cz.johnczek.dpapi.user.entity.AddressEntity;
 import cz.johnczek.dpapi.user.entity.UserEntity;
 import cz.johnczek.dpapi.user.mapper.AddressMapper;
@@ -11,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -42,5 +46,12 @@ public class AddressServiceImpl implements AddressService {
 
         addressRepository.delete(addressEntity);
 
+    }
+
+    @Override
+    public List<AddressDto> findByUserId(long userId) {
+        return addressRepository.findByUserId(userId).stream()
+                .map(addressMapper::entityToDto)
+                .collect(Collectors.toList());
     }
 }

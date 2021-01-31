@@ -10,6 +10,8 @@ import cz.johnczek.dpapi.core.security.SecurityUtils;
 import cz.johnczek.dpapi.core.security.jwt.JwtUtils;
 import cz.johnczek.dpapi.file.entity.FileEntity;
 import cz.johnczek.dpapi.file.service.FileService;
+import cz.johnczek.dpapi.user.dto.AddressDto;
+import cz.johnczek.dpapi.user.dto.BankAccountDto;
 import cz.johnczek.dpapi.user.dto.LoggedUserDetails;
 import cz.johnczek.dpapi.user.dto.UserDto;
 import cz.johnczek.dpapi.user.entity.RoleEntity;
@@ -42,6 +44,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -192,6 +195,22 @@ public class UserServiceImpl implements UserService {
         checkUserPermissionEditability(userId);
 
         addressService.deleteAddress(addressId, userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<UserDto> findById(long userId) {
+
+        UserEntity user = userRepository.findByUserId(userId).orElseThrow(() -> {
+            log.error("User retrieval failed. User with id {} not found", userId);
+
+            return new UserNotFoundRestException(userId);
+        });
+
+        List<AddressDto> addresses = addressService.findByUserId(userId);
+        List<BankAccountDto> bankAccounts = bankAccountService.findByUserId(userId);
+
+        return Optional.of(userMapper.entityToDto(user, addresses, bankAccounts));
     }
 
     private UserEntity checkUserPermissionEditability(long id) {

@@ -1,6 +1,7 @@
 package cz.johnczek.dpapi.user.service;
 
 import cz.johnczek.dpapi.core.errorhandling.exception.BankAccountNotFoundRestException;
+import cz.johnczek.dpapi.user.dto.BankAccountDto;
 import cz.johnczek.dpapi.user.entity.BankAccountEntity;
 import cz.johnczek.dpapi.user.entity.UserEntity;
 import cz.johnczek.dpapi.user.mapper.BankAccountMapper;
@@ -11,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -41,5 +45,13 @@ public class BankAccountServiceImpl implements BankAccountService {
         });
 
         bankAccountRepository.delete(bankAccount);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BankAccountDto> findByUserId(long userId) {
+        return  bankAccountRepository.findByUserId(userId).stream()
+                .map(bankAccountMapper::entityToDto)
+                .collect(Collectors.toList());
     }
 }

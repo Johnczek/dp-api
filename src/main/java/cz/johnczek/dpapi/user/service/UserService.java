@@ -11,6 +11,7 @@ import cz.johnczek.dpapi.user.response.JwtResponse;
 import lombok.NonNull;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public interface UserService {
@@ -34,4 +35,6 @@ public interface UserService {
     void addAddress(long userId, @NonNull AddressCreationRequest request);
 
     void deleteAddress(long addressId, long userId);
+
+    Optional<UserDto> findById(long userId);
 }

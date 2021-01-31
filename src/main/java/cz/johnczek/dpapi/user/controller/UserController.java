@@ -1,5 +1,6 @@
 package cz.johnczek.dpapi.user.controller;
 
+import cz.johnczek.dpapi.user.dto.UserDto;
 import cz.johnczek.dpapi.user.request.AddressCreationRequest;
 import cz.johnczek.dpapi.user.request.BankAccountCreationRequest;
 import cz.johnczek.dpapi.user.request.LoginRequest;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,6 +37,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping(value = "/login")
+    @Operation(summary = "User login endpoint")
     public ResponseEntity<JwtResponse> login(@Validated @Valid @RequestBody LoginRequest loginRequest, Errors errors) {
 
         if (errors.hasErrors()) {
@@ -46,6 +50,7 @@ public class UserController {
     }
 
     @PostMapping(value = "/register")
+    @Operation(summary = "User register endpoint")
     public ResponseEntity<HttpStatus> register(@Validated @Valid @RequestBody RegisterRequest registerRequest, Errors errors) {
 
         if (errors.hasErrors()) {
@@ -56,6 +61,15 @@ public class UserController {
         userService.register(registerRequest);
 
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "User dto retrieval")
+    public ResponseEntity<UserDto> findById(@PathVariable("id") long id) {
+        Optional<UserDto> userDto = userService.findById(id);
+
+        return userDto.map(dto -> new ResponseEntity<>(dto, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PatchMapping(value = "/{id}")
@@ -76,6 +90,7 @@ public class UserController {
     }
 
     @PatchMapping(value = "/{id}/avatar")
+    @Operation(summary = "User avatar update endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> updateUserAvatar(@PathVariable("id") long id,
                                                        @Valid @RequestBody UserChangeAvatarRequest request) {
 
@@ -84,6 +99,7 @@ public class UserController {
     }
 
     @PatchMapping(value = "/{id}/password")
+    @Operation(summary = "User password update endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> updateUserPassword(@PathVariable("id") long id,
                                                        @Valid @RequestBody UserChangePasswordRequest request) {
 
@@ -92,6 +108,7 @@ public class UserController {
     }
 
     @PostMapping(value = "/{userId}/bank-account")
+    @Operation(summary = "User bank account add endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> addBankAccount(@PathVariable("userId") long userId,
                                                          @Valid @RequestBody BankAccountCreationRequest request) {
 
@@ -100,6 +117,7 @@ public class UserController {
     }
 
     @DeleteMapping(value = "/{userId}/bank-account/{bankAccountId}")
+    @Operation(summary = "User bank account delete endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> deleteBankAccount(@PathVariable("userId") long userId,
                                                          @PathVariable("bankAccountId") long bankAccountId) {
 
@@ -108,6 +126,7 @@ public class UserController {
     }
 
     @PostMapping(value = "/{userId}/address")
+    @Operation(summary = "User address add endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> addAddress(@PathVariable("userId") long userId,
                                                          @Valid @RequestBody AddressCreationRequest request) {
 
@@ -116,6 +135,7 @@ public class UserController {
     }
 
     @DeleteMapping(value = "/{userId}/address/{addressId}")
+    @Operation(summary = "User address delete endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> deleteAddress(@PathVariable("userId") long userId,
                                                          @PathVariable("addressId") long addressId) {
 

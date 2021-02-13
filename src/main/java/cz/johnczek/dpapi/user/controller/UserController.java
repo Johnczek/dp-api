@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.validation.annotation.Validated;
@@ -36,7 +37,7 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping(value = "/login")
+    @PostMapping(value = "/login", produces = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "User login endpoint")
     public ResponseEntity<JwtResponse> login(@Validated @Valid @RequestBody LoginRequest loginRequest, Errors errors) {
 

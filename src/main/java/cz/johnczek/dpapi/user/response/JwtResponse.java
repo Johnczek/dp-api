@@ -27,6 +27,8 @@ public class JwtResponse {
 
     private String email;
 
+    private String avatarUUID;
+
     @Builder.Default
     private Collection<String> roles = new ArrayList<>();
 

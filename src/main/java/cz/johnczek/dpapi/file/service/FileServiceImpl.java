@@ -9,6 +9,9 @@ import cz.johnczek.dpapi.file.repository.FileRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -48,17 +51,24 @@ public class FileServiceImpl implements FileService {
         UUID uuid = UUID.randomUUID();
 
         try {
-            String extension = originalFileName.substring(originalFileName.lastIndexOf('.') + 1);
+
+            MimeType type = MimeTypes.getDefaultMimeTypes().forName(multipartFile.getContentType());
+            String extension = type.getExtension();
+
             Path targetDirectory = getFileLocation().resolve(fileType.getFolder());
             Files.createDirectories(targetDirectory);
 
-            Path target = targetDirectory.resolve(uuid.toString() + '.' + extension);
+            Path target = targetDirectory.resolve(uuid.toString() + extension);
             Files.copy(multipartFile.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
 
-            fileRepository.save(prepare(uuid.toString(), extension, FileType.USER_AVATAR));
+            fileRepository.save(prepare(uuid.toString(), extension.substring(1), FileType.USER_AVATAR));
 
         } catch (IOException e) {
             log.error("Error uploading image. File {} could not be stored", multipartFile.getOriginalFilename(), e);
+
+            throw new FileStorageInternalErrorRestException();
+        } catch (MimeTypeException e) {
+            log.error("Error getting file extension for file with content type {}", multipartFile.getContentType(), e);
 
             throw new FileStorageInternalErrorRestException();
         }

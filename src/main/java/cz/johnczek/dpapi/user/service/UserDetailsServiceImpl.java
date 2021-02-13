@@ -21,7 +21,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public LoggedUserDetails loadUserByUsername(@NonNull String email) {
-        return userRepository.findByEmailWithRolesFetched(email)
+        return userRepository.findByEmailWithRolesAndAvatarFetched(email)
                 .map(userMapper::entityToLoggedUserDetails)
                 .orElseThrow(UserNotFoundOrIncorrectPasswordRestException::new);
     }

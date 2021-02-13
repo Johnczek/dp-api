@@ -88,6 +88,7 @@ public class UserServiceImpl implements UserService {
                 .username(user.getUsername())
                 .token(jwtToken)
                 .roles(user.getUserRoles())
+                .avatarUUID(user.getAvatarUUID())
                 .build();
     }
 

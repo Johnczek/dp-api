@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 public interface UserMapper {
 
     @Mapping(target = "username", source = "email")
+    @Mapping(target = "avatarUUID", source = "avatar.fileIdentifier")
     @Mapping(target = "authorities", source = "user", qualifiedByName = "rolesToAuthorities")
     LoggedUserDetails entityToLoggedUserDetails(UserEntity user);
 

@@ -18,6 +18,8 @@ public interface UserService {
 
     JwtResponse login(@NonNull String email, @NonNull String password);
 
+    JwtResponse loggedUser();
+
     void register(@NonNull RegisterRequest registerRequest);
 
     void patch(long id, @NonNull UserChangeRequest userChangeRequest);

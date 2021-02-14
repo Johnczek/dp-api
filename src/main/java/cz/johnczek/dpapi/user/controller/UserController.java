@@ -37,7 +37,7 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping(value = "/login", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @PostMapping(value = "/login", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "User login endpoint")
     public ResponseEntity<JwtResponse> login(@Validated @Valid @RequestBody LoginRequest loginRequest, Errors errors) {
 
@@ -50,7 +50,7 @@ public class UserController {
                 userService.login(loginRequest.getEmail(), loginRequest.getPassword()), HttpStatus.OK);
     }
 
-    @PostMapping(value = "/register")
+    @PostMapping(value = "/register", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "User register endpoint")
     public ResponseEntity<HttpStatus> register(@Validated @Valid @RequestBody RegisterRequest registerRequest, Errors errors) {
 
@@ -64,7 +64,13 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
+    @PostMapping(value = "/logged-user", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @Operation(summary = "Getting logged person details")
+    public ResponseEntity<JwtResponse> loggedUser() {
+        return new ResponseEntity<>(userService.loggedUser(), HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "User dto retrieval")
     public ResponseEntity<UserDto> findById(@PathVariable("id") long id) {
         Optional<UserDto> userDto = userService.findById(id);
@@ -73,7 +79,7 @@ public class UserController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @PatchMapping(value = "/{id}")
+    @PatchMapping(value = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "User data update endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> patch(
             @PathVariable("id") long id,
@@ -99,7 +105,7 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PatchMapping(value = "/{id}/password")
+    @PatchMapping(value = "/{id}/password", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "User password update endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> updateUserPassword(@PathVariable("id") long id,
                                                        @Valid @RequestBody UserChangePasswordRequest request) {
@@ -108,7 +114,7 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping(value = "/{userId}/bank-account")
+    @PostMapping(value = "/{userId}/bank-account", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "User bank account add endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> addBankAccount(@PathVariable("userId") long userId,
                                                          @Valid @RequestBody BankAccountCreationRequest request) {
@@ -117,7 +123,7 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @DeleteMapping(value = "/{userId}/bank-account/{bankAccountId}")
+    @DeleteMapping(value = "/{userId}/bank-account/{bankAccountId}", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "User bank account delete endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> deleteBankAccount(@PathVariable("userId") long userId,
                                                          @PathVariable("bankAccountId") long bankAccountId) {
@@ -126,7 +132,7 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping(value = "/{userId}/address")
+    @PostMapping(value = "/{userId}/address", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "User address add endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> addAddress(@PathVariable("userId") long userId,
                                                          @Valid @RequestBody AddressCreationRequest request) {
@@ -135,7 +141,7 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @DeleteMapping(value = "/{userId}/address/{addressId}")
+    @DeleteMapping(value = "/{userId}/address/{addressId}", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "User address delete endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> deleteAddress(@PathVariable("userId") long userId,
                                                          @PathVariable("addressId") long addressId) {

@@ -82,14 +82,17 @@ public class UserServiceImpl implements UserService {
         String jwtToken = jwtUtils.generateJwtToken(authentication);
         LoggedUserDetails user = (LoggedUserDetails) authentication.getPrincipal();
 
-        return JwtResponse.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .username(user.getUsername())
-                .token(jwtToken)
-                .roles(user.getUserRoles())
-                .avatarUUID(user.getAvatarUUID())
-                .build();
+        return getJwtResponse(jwtToken, user);
+
+    }
+
+    @Override
+    public JwtResponse loggedUser() {
+
+        LoggedUserDetails user = getLoggedPerson();
+        String jwtToken = jwtUtils.generateJwtToken(getLoggedPerson());
+
+        return getJwtResponse(jwtToken, user);
     }
 
     @Override
@@ -145,6 +148,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void updateUserAvatar(long id, @NonNull UserChangeAvatarRequest request) {
+
+        // TODO delete previous avatar
 
         String pictureUUID = request.getAvatarUUID();
         FileEntity file = fileService.findByFileIdentifier(pictureUUID).orElseThrow(() -> {
@@ -216,11 +221,7 @@ public class UserServiceImpl implements UserService {
 
     private UserEntity checkUserPermissionEditability(long id) {
 
-        LoggedUserDetails loggedUser = SecurityUtils.getLoggedUser().orElseThrow(() -> {
-            log.error("Update of user avatar with id {} failed. Logged person not found", id);
-
-            return new BaseForbiddenRestException();
-        });
+        LoggedUserDetails loggedUser = getLoggedPerson();
 
         UserEntity user = userRepository.findById(id).orElseThrow(() -> {
             log.error("Update of user with id {} failed. User not found", id);
@@ -236,5 +237,26 @@ public class UserServiceImpl implements UserService {
         }
 
         return user;
+    }
+
+    private LoggedUserDetails getLoggedPerson() {
+        return SecurityUtils.getLoggedUser().orElseThrow(() -> {
+            log.error("Getting logged person failed. No user logged");
+
+            return new BaseForbiddenRestException();
+        });
+    }
+
+    private JwtResponse getJwtResponse(@NonNull String jwtToken, LoggedUserDetails user) {
+        return JwtResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .username(user.getUsername())
+                .token(jwtToken)
+                .roles(user.getUserRoles())
+                .avatarUUID(user.getAvatarUUID())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .build();
     }
 }

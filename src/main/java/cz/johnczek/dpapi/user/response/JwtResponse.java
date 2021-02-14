@@ -29,6 +29,10 @@ public class JwtResponse {
 
     private String avatarUUID;
 
+    private String firstName;
+
+    private String lastName;
+
     @Builder.Default
     private Collection<String> roles = new ArrayList<>();
 

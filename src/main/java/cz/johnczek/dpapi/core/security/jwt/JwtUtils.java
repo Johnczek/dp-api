@@ -30,8 +30,10 @@ public class JwtUtils {
     private int jwtExpirationMs;
 
     public String generateJwtToken(Authentication authentication) {
+        return generateJwtToken((LoggedUserDetails) authentication.getPrincipal());
+    }
 
-        LoggedUserDetails userPrincipal = (LoggedUserDetails) authentication.getPrincipal();
+    public String generateJwtToken(LoggedUserDetails userPrincipal) {
 
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         Key key = Keys.hmacShaKeyFor(keyBytes);

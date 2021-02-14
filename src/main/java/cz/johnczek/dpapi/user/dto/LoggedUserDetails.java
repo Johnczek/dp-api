@@ -36,6 +36,10 @@ public class LoggedUserDetails implements UserDetails {
 
     private String avatarUUID;
 
+    private String firstName;
+
+    private String lastName;
+
     @JsonIgnore
     private String password;
 

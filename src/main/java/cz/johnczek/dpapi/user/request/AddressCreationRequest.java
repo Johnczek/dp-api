@@ -16,7 +16,7 @@ public class AddressCreationRequest {
     private String streetNumber;
 
     @NotBlank
-    private String zipCode;
+    private String zipcode;
 
     @NotBlank
     private String city;

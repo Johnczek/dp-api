@@ -6,10 +6,11 @@ import cz.johnczek.dpapi.user.request.AddressCreationRequest;
 import lombok.NonNull;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface AddressService {
 
-    void addAddress(@NonNull UserEntity user, @NonNull AddressCreationRequest request);
+    Optional<AddressDto> addAddress(@NonNull UserEntity user, @NonNull AddressCreationRequest request);
 
     void deleteAddress(long addressId, long userId);
 

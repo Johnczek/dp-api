@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -27,11 +28,11 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     @Transactional
-    public void addAddress(@NonNull UserEntity user, @NonNull AddressCreationRequest request) {
+    public Optional<AddressDto> addAddress(@NonNull UserEntity user, @NonNull AddressCreationRequest request) {
 
         AddressEntity address = addressMapper.requestToEntity(request);
         address.setUser(user);
-        addressRepository.save(address);
+        return Optional.ofNullable(addressMapper.entityToDto(addressRepository.save(address)));
     }
 
     @Override

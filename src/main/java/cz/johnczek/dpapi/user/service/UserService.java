@@ -1,5 +1,7 @@
 package cz.johnczek.dpapi.user.service;
 
+import cz.johnczek.dpapi.user.dto.AddressDto;
+import cz.johnczek.dpapi.user.dto.BankAccountDto;
 import cz.johnczek.dpapi.user.dto.UserDto;
 import cz.johnczek.dpapi.user.request.AddressCreationRequest;
 import cz.johnczek.dpapi.user.request.BankAccountCreationRequest;
@@ -30,11 +32,11 @@ public interface UserService {
 
     void updateUserPassword(long id, @NonNull UserChangePasswordRequest request);
 
-    void addBankAccount(long userId, @NonNull BankAccountCreationRequest request);
+    Optional<BankAccountDto> addBankAccount(long userId, @NonNull BankAccountCreationRequest request);
 
     void deleteBankAccount(long bankAccountId, long userId);
 
-    void addAddress(long userId, @NonNull AddressCreationRequest request);
+    Optional<AddressDto> addAddress(long userId, @NonNull AddressCreationRequest request);
 
     void deleteAddress(long addressId, long userId);
 

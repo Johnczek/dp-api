@@ -173,10 +173,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void addBankAccount(long userId, @NonNull BankAccountCreationRequest request) {
+    public Optional<BankAccountDto> addBankAccount(long userId, @NonNull BankAccountCreationRequest request) {
         UserEntity user = checkUserPermissionEditability(userId);
 
-        bankAccountService.addBankAccount(user, request);
+        return bankAccountService.addBankAccount(user, request);
     }
 
     @Override
@@ -189,10 +189,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void addAddress(long userId, @NonNull AddressCreationRequest request) {
+    public Optional<AddressDto> addAddress(long userId, @NonNull AddressCreationRequest request) {
         UserEntity user = checkUserPermissionEditability(userId);
 
-        addressService.addAddress(user, request);
+        return addressService.addAddress(user, request);
     }
 
     @Override

@@ -1,5 +1,7 @@
 package cz.johnczek.dpapi.user.controller;
 
+import cz.johnczek.dpapi.user.dto.AddressDto;
+import cz.johnczek.dpapi.user.dto.BankAccountDto;
 import cz.johnczek.dpapi.user.dto.UserDto;
 import cz.johnczek.dpapi.user.request.AddressCreationRequest;
 import cz.johnczek.dpapi.user.request.BankAccountCreationRequest;
@@ -116,14 +118,16 @@ public class UserController {
 
     @PostMapping(value = "/{userId}/bank-account", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "User bank account add endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<HttpStatus> addBankAccount(@PathVariable("userId") long userId,
+    public ResponseEntity<BankAccountDto> addBankAccount(@PathVariable("userId") long userId,
                                                          @Valid @RequestBody BankAccountCreationRequest request) {
 
-        userService.addBankAccount(userId, request);
-        return new ResponseEntity<>(HttpStatus.OK);
+        Optional<BankAccountDto> bankAccountDto = userService.addBankAccount(userId, request);
+
+        return bankAccountDto.map(dto -> new ResponseEntity<>(dto, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
-    @DeleteMapping(value = "/{userId}/bank-account/{bankAccountId}", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    @DeleteMapping(value = "/{userId}/bank-account/{bankAccountId}", produces = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "User bank account delete endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> deleteBankAccount(@PathVariable("userId") long userId,
                                                          @PathVariable("bankAccountId") long bankAccountId) {
@@ -134,14 +138,16 @@ public class UserController {
 
     @PostMapping(value = "/{userId}/address", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "User address add endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<HttpStatus> addAddress(@PathVariable("userId") long userId,
-                                                         @Valid @RequestBody AddressCreationRequest request) {
+    public ResponseEntity<AddressDto> addAddress(@PathVariable("userId") long userId,
+                                                 @Valid @RequestBody AddressCreationRequest request) {
 
-        userService.addAddress(userId, request);
-        return new ResponseEntity<>(HttpStatus.OK);
+        Optional<AddressDto> addressDto = userService.addAddress(userId, request);
+
+        return addressDto.map(dto -> new ResponseEntity<>(dto, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
-    @DeleteMapping(value = "/{userId}/address/{addressId}", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    @DeleteMapping(value = "/{userId}/address/{addressId}", produces = {MediaType.APPLICATION_JSON_VALUE})
     @Operation(summary = "User address delete endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> deleteAddress(@PathVariable("userId") long userId,
                                                          @PathVariable("addressId") long addressId) {

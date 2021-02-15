@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -27,11 +28,11 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     @Transactional
-    public void addBankAccount(@NonNull UserEntity user, @NonNull BankAccountCreationRequest request) {
+    public Optional<BankAccountDto> addBankAccount(@NonNull UserEntity user, @NonNull BankAccountCreationRequest request) {
 
         BankAccountEntity bankAccount = bankAccountMapper.requestToEntity(request);
         bankAccount.setUser(user);
-        bankAccountRepository.save(bankAccount);
+        return Optional.ofNullable(bankAccountMapper.entityToDto(bankAccountRepository.save(bankAccount)));
     }
 
     @Override

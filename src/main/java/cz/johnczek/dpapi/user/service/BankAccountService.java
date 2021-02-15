@@ -6,10 +6,11 @@ import cz.johnczek.dpapi.user.request.BankAccountCreationRequest;
 import lombok.NonNull;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface BankAccountService {
 
-    void addBankAccount(@NonNull UserEntity user, @NonNull BankAccountCreationRequest request);
+    Optional<BankAccountDto> addBankAccount(@NonNull UserEntity user, @NonNull BankAccountCreationRequest request);
 
     void deleteBankAccount(long bankAccountId, long userId);
 

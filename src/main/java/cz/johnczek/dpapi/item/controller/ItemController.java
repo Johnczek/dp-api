@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,12 +33,12 @@ public class ItemController {
 
     private final ItemService itemService;
 
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ItemDto>> getAllActive() {
         return new ResponseEntity<>(itemService.findAllActive(), HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ItemDto> getById(@PathVariable("id") long id) {
 
         Optional<ItemDto> itemOps = itemService.findByItemId(id);
@@ -47,7 +48,7 @@ public class ItemController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Item update endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<ItemDto> editById(@PathVariable("id") long id, @Valid @RequestBody ItemChangeRequest request) {
 
@@ -55,7 +56,7 @@ public class ItemController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PatchMapping("/{id}/delivery")
+    @PatchMapping(value = "/{id}/delivery", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Item delivery update endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> changeItemDeliveryMethod(@PathVariable("id") long id,
                                                        @Valid @RequestBody ItemChangeDeliveryRequest request) {
@@ -64,7 +65,7 @@ public class ItemController {
 
     }
 
-    @PatchMapping("/{id}/payment")
+    @PatchMapping(value = "/{id}/payment", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Item payment update endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> changeItemPaymentMethod(@PathVariable("id") long id,
                                                        @Valid @RequestBody ItemChangePaymentRequest request) {
@@ -73,7 +74,7 @@ public class ItemController {
 
     }
 
-    @PatchMapping("/{id}/picture")
+    @PatchMapping(value = "/{id}/picture", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Item picture update endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> changeItemPictureMethod(@PathVariable("id") long id,
                                                               @Valid @RequestBody ItemChangePictureRequest request) {
@@ -82,14 +83,14 @@ public class ItemController {
 
     }
 
-    @PatchMapping("/{id}/top")
+    @PatchMapping(value = "/{id}/top", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Item topping endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> changeItemPictureMethod(@PathVariable("id") long id) {
         itemService.topItem(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Item cancellation endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> cancelItemMethod(@PathVariable("id") long id) {
         itemService.cancelItem(id);

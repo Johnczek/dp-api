@@ -5,6 +5,7 @@ import cz.johnczek.dpapi.item.request.ItemChangeDeliveryRequest;
 import cz.johnczek.dpapi.item.request.ItemChangePaymentRequest;
 import cz.johnczek.dpapi.item.request.ItemChangePictureRequest;
 import cz.johnczek.dpapi.item.request.ItemChangeRequest;
+import cz.johnczek.dpapi.item.response.ItemEditOptionsResponse;
 import cz.johnczek.dpapi.item.service.ItemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -38,6 +39,11 @@ public class ItemController {
         return new ResponseEntity<>(itemService.findAllActive(), HttpStatus.OK);
     }
 
+    @GetMapping(value = "/seller/{sellerId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<ItemDto>> getAllBySellerId(@PathVariable("sellerId") long sellerId) {
+        return new ResponseEntity<>(itemService.findBySellerId(sellerId), HttpStatus.OK);
+    }
+
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ItemDto> getById(@PathVariable("id") long id) {
 
@@ -46,6 +52,13 @@ public class ItemController {
         return itemOps
                 .map(i -> new ResponseEntity<>(i, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+    }
+
+    @GetMapping(value = "/{id}/edit", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ItemEditOptionsResponse> findByItemIdForEdit(@PathVariable("id") long id) {
+
+        ItemEditOptionsResponse itemEditOptions = itemService.findByItemIdForEdit(id);
+        return new ResponseEntity<>(itemEditOptions, HttpStatus.OK);
     }
 
     @PatchMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -85,7 +98,7 @@ public class ItemController {
 
     @PatchMapping(value = "/{id}/top", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Item topping endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<HttpStatus> changeItemPictureMethod(@PathVariable("id") long id) {
+    public ResponseEntity<HttpStatus> topItemMethod(@PathVariable("id") long id) {
         itemService.topItem(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }

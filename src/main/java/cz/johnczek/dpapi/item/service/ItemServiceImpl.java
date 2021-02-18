@@ -23,6 +23,7 @@ import cz.johnczek.dpapi.item.request.ItemChangeDeliveryRequest;
 import cz.johnczek.dpapi.item.request.ItemChangePaymentRequest;
 import cz.johnczek.dpapi.item.request.ItemChangePictureRequest;
 import cz.johnczek.dpapi.item.request.ItemChangeRequest;
+import cz.johnczek.dpapi.item.response.ItemEditOptionsResponse;
 import cz.johnczek.dpapi.payment.dto.PaymentDto;
 import cz.johnczek.dpapi.payment.entity.PaymentEntity;
 import cz.johnczek.dpapi.payment.service.PaymentService;
@@ -88,29 +89,48 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ItemDto> findAllActive() {
-        Set<ItemEntity> items = itemRepository.findAllActiveWithFieldsFetched();
-        Set<Long> itemIds = items.stream().map(ItemEntity::getId).collect(Collectors.toSet());
+    public List<ItemDto> findBySellerId(long sellerId) {
+        Set<Long> itemIds = itemRepository.findAllActiveIdsBySellerId(sellerId);
+        if (CollectionUtils.isEmpty(itemIds)) {
+            return Collections.emptyList();
+        }
 
-        Map<Long, ItemHighestBidDto> itemHighestBidDtoMap = itemBidService.findHighestBidByItemIds(itemIds);
-        Map<Long, PaymentDto> paymentsMap = paymentService.findByItemIds(itemIds);
-        Map<Long, DeliveryDto> deliveriesMap = deliveryService.findByItemIds(itemIds);
-        Map<Long, UserDto> usersMap = userService.findByItemIds(itemIds);
-
-        return items.stream()
-                .map(i -> itemMapper.entityToDto(
-                        i,
-                        deliveriesMap.get(i.getDelivery().getId()),
-                        paymentsMap.get(i.getPayment().getId()),
-                        usersMap.get(i.getSeller().getId()),
-                        itemHighestBidDtoMap.get(i.getId())))
-                .collect(Collectors.toList());
+        return findByItemIds(itemIds);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<ItemDto> findByItemId(@NonNull long itemId) {
-        return findByItemIds(Collections.singleton(itemId)).stream().findFirst();
+    public List<ItemDto> findAllActive() {
+        Set<Long> itemIds = itemRepository.findAllActiveIds();
+        if (CollectionUtils.isEmpty(itemIds)) {
+            return Collections.emptyList();
+        }
+
+        return findByItemIds(itemIds);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<ItemDto> findByItemId(long itemId) {
+        return findByItemIds(Collections.singleton(itemId)).stream()
+                .findFirst();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ItemEditOptionsResponse findByItemIdForEdit(long itemId) {
+        ItemDto item = findByItemId(itemId).orElseThrow(() -> {
+
+            log.error("Could not retrieve item for item edit, item with id {} not found", itemId);
+
+            return new ItemNotFoundRestException(itemId);
+        });
+
+        return ItemEditOptionsResponse.builder()
+                .item(item)
+                .payments(paymentService.getAllPaymentTypes())
+                .deliveries(deliveryService.getAllDeliveryTypes())
+                .build();
     }
 
     @Override
@@ -224,6 +244,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public void topItem(long itemId) {
 
         ItemEntity item = itemRepository.findByIdWithFieldsFetched(itemId).orElseThrow(() -> {
@@ -240,6 +261,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public void cancelItem(long itemId) {
 
         ItemEntity item = itemRepository.findByIdWithFieldsFetched(itemId).orElseThrow(() -> {

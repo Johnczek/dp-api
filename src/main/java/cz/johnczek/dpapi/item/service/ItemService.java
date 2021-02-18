@@ -5,6 +5,7 @@ import cz.johnczek.dpapi.item.request.ItemChangeDeliveryRequest;
 import cz.johnczek.dpapi.item.request.ItemChangePaymentRequest;
 import cz.johnczek.dpapi.item.request.ItemChangePictureRequest;
 import cz.johnczek.dpapi.item.request.ItemChangeRequest;
+import cz.johnczek.dpapi.item.response.ItemEditOptionsResponse;
 import lombok.NonNull;
 
 import java.util.List;
@@ -15,9 +16,13 @@ public interface ItemService {
 
     List<ItemDto> findAllActive();
 
-    Optional<ItemDto> findByItemId(@NonNull long itemId);
+    Optional<ItemDto> findByItemId(long itemId);
+
+    ItemEditOptionsResponse findByItemIdForEdit(long itemId);
 
     List<ItemDto> findByItemIds(@NonNull Set<Long> itemIds);
+
+    List<ItemDto> findBySellerId(long sellerId);
 
     void changeItemDelivery(
             long itemId,

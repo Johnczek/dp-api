@@ -19,13 +19,14 @@ public interface ItemRepository extends JpaRepository<ItemEntity, Long> {
             "where i.id in (:itemIds)")
     Set<ItemEntity> findByItemIdsWithFields(@NonNull @Param("itemIds") Set<Long> itemIds);
 
-    @Query("select i from ItemEntity i " +
-            "left join fetch i.picture " +
-            "left join i.delivery " +
-            "left join i.payment " +
-            "left join i.seller " +
+    @Query("select i.id from ItemEntity i " +
             "where i.state = cz.johnczek.dpapi.item.enums.ItemState.ACTIVE")
-    Set<ItemEntity> findAllActiveWithFieldsFetched();
+    Set<Long> findAllActiveIds();
+
+    @Query("select i.id from ItemEntity i " +
+            "left join i.seller s " +
+            "where s.id = :sellerId")
+    Set<Long> findAllActiveIdsBySellerId(@Param("sellerId") long sellerId);
 
     @Query("select i from ItemEntity i " +
             "left join fetch i.picture " +

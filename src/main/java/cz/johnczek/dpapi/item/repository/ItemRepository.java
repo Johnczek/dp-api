@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -37,6 +36,14 @@ public interface ItemRepository extends JpaRepository<ItemEntity, Long> {
             "where i.id = :itemId")
     Optional<ItemEntity> findByIdWithFieldsFetched(@Param("itemId") long itemId);
 
-    @Query(value = "select i.id from item i left join item_bid ib on i.id = ib.item_id and ", nativeQuery = true)
-    List<Long> findAllIdsForCartByBuyerId(@Param("buyerId") long buyerId);
+    @Query(value = "SELECT i.id " +
+            "FROM item i " +
+            "         JOIN item_bid ib ON (i.id = ib.item_id) " +
+            "WHERE (item_id, amount) in " +
+            "      (SELECT item_id, max(amount) " +
+            "       FROM item i " +
+            "                JOIN item_bid ib ON (i.id = ib.item_id) " +
+            "       GROUP BY ib.item_id) " +
+            "  and ib.buyer_id = :buyerId;", nativeQuery = true)
+    Set<Long> findAllIdsForCartByBuyerId(@Param("buyerId") long buyerId);
 }

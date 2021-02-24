@@ -44,5 +44,5 @@ public interface ItemService {
 
     Optional<ItemDto> createItem(ItemCreationRequest request);
 
-    List<ItemDto> findCartItemsForUser(long sellerId);
+    List<ItemDto> findCartItemsForUser(long buyerId);
 }

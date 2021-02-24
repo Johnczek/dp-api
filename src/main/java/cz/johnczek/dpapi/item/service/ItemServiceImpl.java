@@ -195,8 +195,10 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ItemDto> findCartItemsForUser(long sellerId) {
-        return null;
+    public List<ItemDto> findCartItemsForUser(long buyerId) {
+        Set<Long> itemIds = itemRepository.findAllIdsForCartByBuyerId(buyerId);
+
+        return findByItemIds(itemIds);
     }
 
     @Override

@@ -61,7 +61,7 @@ public class FileServiceImpl implements FileService {
             Path target = targetDirectory.resolve(uuid.toString() + extension);
             Files.copy(multipartFile.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
 
-            fileRepository.save(prepare(uuid.toString(), extension.substring(1), FileType.USER_AVATAR));
+            fileRepository.save(prepare(uuid.toString(), extension.substring(1), fileType));
 
         } catch (IOException e) {
             log.error("Error uploading image. File {} could not be stored", multipartFile.getOriginalFilename(), e);

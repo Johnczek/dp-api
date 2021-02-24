@@ -219,6 +219,18 @@ public class UserServiceImpl implements UserService {
         return Optional.of(userMapper.entityToDto(user, addresses, bankAccounts));
     }
 
+    @Override
+    public Optional<UserEntity> findEntityById(long userId) {
+
+        UserEntity user = userRepository.findByUserId(userId).orElseThrow(() -> {
+            log.error("User retrieval failed. User with id {} not found", userId);
+
+            return new UserNotFoundRestException(userId);
+        });
+
+        return Optional.of(user);
+    }
+
     private UserEntity checkUserPermissionEditability(long id) {
 
         LoggedUserDetails loggedUser = getLoggedPerson();

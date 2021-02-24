@@ -3,6 +3,7 @@ package cz.johnczek.dpapi.user.service;
 import cz.johnczek.dpapi.user.dto.AddressDto;
 import cz.johnczek.dpapi.user.dto.BankAccountDto;
 import cz.johnczek.dpapi.user.dto.UserDto;
+import cz.johnczek.dpapi.user.entity.UserEntity;
 import cz.johnczek.dpapi.user.request.AddressCreationRequest;
 import cz.johnczek.dpapi.user.request.BankAccountCreationRequest;
 import cz.johnczek.dpapi.user.request.UserChangeAvatarRequest;
@@ -41,4 +42,6 @@ public interface UserService {
     void deleteAddress(long addressId, long userId);
 
     Optional<UserDto> findById(long userId);
+
+    Optional<UserEntity> findEntityById(long userId);
 }

@@ -4,6 +4,7 @@ import cz.johnczek.dpapi.delivery.dto.DeliveryDto;
 import cz.johnczek.dpapi.item.dto.ItemDto;
 import cz.johnczek.dpapi.item.dto.ItemHighestBidDto;
 import cz.johnczek.dpapi.item.entity.ItemEntity;
+import cz.johnczek.dpapi.item.request.ItemCreationRequest;
 import cz.johnczek.dpapi.payment.dto.PaymentDto;
 import cz.johnczek.dpapi.user.dto.UserDto;
 import org.mapstruct.Mapper;
@@ -25,5 +26,7 @@ public interface ItemMapper {
                         PaymentDto payment,
                         UserDto seller,
                         ItemHighestBidDto itemHighestBid);
+
+    ItemEntity creationRequestToEntity(ItemCreationRequest source);
 
 }

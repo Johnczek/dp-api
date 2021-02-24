@@ -5,6 +5,8 @@ import cz.johnczek.dpapi.item.request.ItemChangeDeliveryRequest;
 import cz.johnczek.dpapi.item.request.ItemChangePaymentRequest;
 import cz.johnczek.dpapi.item.request.ItemChangePictureRequest;
 import cz.johnczek.dpapi.item.request.ItemChangeRequest;
+import cz.johnczek.dpapi.item.request.ItemCreationRequest;
+import cz.johnczek.dpapi.item.response.ItemCreationOptionsResponse;
 import cz.johnczek.dpapi.item.response.ItemEditOptionsResponse;
 import lombok.NonNull;
 
@@ -37,4 +39,10 @@ public interface ItemService {
     void topItem(long itemId);
 
     void cancelItem(long itemId);
+
+    ItemCreationOptionsResponse getItemCreationOptions();
+
+    Optional<ItemDto> createItem(ItemCreationRequest request);
+
+    List<ItemDto> findCartItemsForUser(long sellerId);
 }

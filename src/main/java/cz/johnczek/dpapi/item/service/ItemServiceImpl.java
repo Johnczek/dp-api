@@ -6,6 +6,7 @@ import cz.johnczek.dpapi.core.errorhandling.exception.FileNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemInNotEditableStateRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.PaymentNotFoundRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.UserNotFoundRestException;
 import cz.johnczek.dpapi.core.persistence.AbstractIdBasedEntity;
 import cz.johnczek.dpapi.core.security.SecurityUtils;
 import cz.johnczek.dpapi.delivery.dto.DeliveryDto;
@@ -23,17 +24,21 @@ import cz.johnczek.dpapi.item.request.ItemChangeDeliveryRequest;
 import cz.johnczek.dpapi.item.request.ItemChangePaymentRequest;
 import cz.johnczek.dpapi.item.request.ItemChangePictureRequest;
 import cz.johnczek.dpapi.item.request.ItemChangeRequest;
+import cz.johnczek.dpapi.item.request.ItemCreationRequest;
+import cz.johnczek.dpapi.item.response.ItemCreationOptionsResponse;
 import cz.johnczek.dpapi.item.response.ItemEditOptionsResponse;
 import cz.johnczek.dpapi.payment.dto.PaymentDto;
 import cz.johnczek.dpapi.payment.entity.PaymentEntity;
 import cz.johnczek.dpapi.payment.service.PaymentService;
 import cz.johnczek.dpapi.user.dto.LoggedUserDetails;
 import cz.johnczek.dpapi.user.dto.UserDto;
+import cz.johnczek.dpapi.user.entity.UserEntity;
 import cz.johnczek.dpapi.user.service.UserService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -131,6 +136,67 @@ public class ItemServiceImpl implements ItemService {
                 .payments(paymentService.getAllPaymentTypes())
                 .deliveries(deliveryService.getAllDeliveryTypes())
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ItemCreationOptionsResponse getItemCreationOptions() {
+        return ItemCreationOptionsResponse.builder()
+                .payments(paymentService.getAllPaymentTypes())
+                .deliveries(deliveryService.getAllDeliveryTypes())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public Optional<ItemDto> createItem(ItemCreationRequest request) {
+
+        ItemEntity item = itemMapper.creationRequestToEntity(request);
+        item.setState(ItemState.ACTIVE);
+
+        LoggedUserDetails loggedUser = SecurityUtils.getLoggedUser().orElseThrow(() -> {
+            log.error("Creation of item failed. Logged person not found");
+
+            return new BaseForbiddenRestException();
+        });
+
+        UserEntity user = userService.findEntityById(loggedUser.getId()).orElseThrow(() -> {
+            log.error("Creation of item failed. Logged person with id {} not found", loggedUser.getId());
+
+            return new UserNotFoundRestException(loggedUser.getId());
+        });
+        item.setSeller(user);
+
+        PaymentEntity payment = paymentService.findById(request.getPaymentId()).orElseThrow(() -> {
+            log.error("Creation of item failed. Payment method with id {} not found", request.getPaymentId());
+
+            return new PaymentNotFoundRestException(request.getPaymentId());
+        });
+        item.setPayment(payment);
+
+        DeliveryEntity delivery = deliveryService.findById(request.getDeliveryId()).orElseThrow(() -> {
+            log.error("Creation of item failed. Delivery with id {} not found", request.getDeliveryId());
+
+            return new DeliveryNotFoundRestException(request.getDeliveryId());
+        });
+        item.setDelivery(delivery);
+
+        FileEntity picture = fileService.findByFileIdentifier(request.getPictureUUID()).orElseThrow(() -> {
+            log.error("Creation of item failed. Picture with uuid {} not found", request.getPictureUUID());
+
+            return new FileNotFoundRestException(request.getPictureUUID());
+        });
+        item.setPicture(picture);
+
+        itemRepository.save(item);
+
+        return findByItemId(item.getId());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ItemDto> findCartItemsForUser(long sellerId) {
+        return null;
     }
 
     @Override

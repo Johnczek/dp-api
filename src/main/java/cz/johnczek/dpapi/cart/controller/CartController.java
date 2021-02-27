@@ -1,5 +1,6 @@
 package cz.johnczek.dpapi.cart.controller;
 
+import cz.johnczek.dpapi.cart.response.CartItemResponse;
 import cz.johnczek.dpapi.cart.response.CartResponse;
 import cz.johnczek.dpapi.cart.service.CartService;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +19,13 @@ public class CartController {
 
     private final CartService cartService;
 
-    @GetMapping(value = "/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CartResponse> getCartForUser(@PathVariable("userId") long userId) {
-        return new ResponseEntity<>(cartService.getCartByUserId(userId), HttpStatus.OK);
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CartResponse> getCartForLoggedUser() {
+        return new ResponseEntity<>(cartService.getCartForLoggedUser(), HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/{itemId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CartItemResponse> getCartItem(@PathVariable("itemId") long itemId) {
+        return new ResponseEntity<>(cartService.getCartItemById(itemId), HttpStatus.OK);
     }
 }

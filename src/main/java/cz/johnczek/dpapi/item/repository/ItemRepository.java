@@ -36,14 +36,14 @@ public interface ItemRepository extends JpaRepository<ItemEntity, Long> {
             "where i.id = :itemId")
     Optional<ItemEntity> findByIdWithFieldsFetched(@Param("itemId") long itemId);
 
-    @Query(value = "SELECT i.id " +
-            "FROM item i " +
-            "         JOIN item_bid ib ON (i.id = ib.item_id) " +
-            "WHERE (item_id, amount) in " +
-            "      (SELECT item_id, max(amount) " +
-            "       FROM item i " +
-            "                JOIN item_bid ib ON (i.id = ib.item_id) " +
-            "       GROUP BY ib.item_id) " +
-            "  and ib.buyer_id = :buyerId;", nativeQuery = true)
+    @Query(value = "select i.id " +
+            "from item i " +
+            "         join item_bid ib on (i.id = ib.item_id) " +
+            "where (item_id, amount) in " +
+            "      (select item_id, max(amount) " +
+            "       from item i " +
+            "                join item_bid ib on (i.id = ib.item_id) " +
+            "       group by ib.item_id) " +
+            "  and ib.buyer_id = :buyerId", nativeQuery = true)
     Set<Long> findAllIdsForCartByBuyerId(@Param("buyerId") long buyerId);
 }

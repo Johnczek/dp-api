@@ -45,4 +45,6 @@ public interface ItemService {
     Optional<ItemDto> createItem(ItemCreationRequest request);
 
     List<ItemDto> findCartItemsForUser(long buyerId);
+
+    void checkItemBuyability(long itemId);
 }

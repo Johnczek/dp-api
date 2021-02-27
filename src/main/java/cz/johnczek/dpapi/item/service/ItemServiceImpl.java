@@ -4,6 +4,7 @@ import cz.johnczek.dpapi.core.errorhandling.exception.BaseForbiddenRestException
 import cz.johnczek.dpapi.core.errorhandling.exception.DeliveryNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.FileNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemInNotEditableStateRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotBuyableRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.PaymentNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.UserNotFoundRestException;
@@ -38,7 +39,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -196,9 +196,33 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional(readOnly = true)
     public List<ItemDto> findCartItemsForUser(long buyerId) {
+
         Set<Long> itemIds = itemRepository.findAllIdsForCartByBuyerId(buyerId);
+        if (CollectionUtils.isEmpty(itemIds)) {
+            return Collections.emptyList();
+        }
 
         return findByItemIds(itemIds);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void checkItemBuyability(long itemId) {
+        LoggedUserDetails loggedUser = SecurityUtils.getLoggedUser().orElseThrow(() -> {
+            log.error("Getting basket item for item with id {} failed. Logged user not found", itemId);
+
+            return new BaseForbiddenRestException();
+        });
+
+        ItemHighestBidDto itemHighestBid = itemBidService.findHighestBidByItemId(itemId).orElseThrow(() -> {
+            log.error("Getting basket item for item with id {} failed. No bids found for item", itemId);
+
+            return new ItemNotBuyableRestException();
+        });
+
+        if (!itemHighestBid.getUserId().equals(loggedUser.getId())) {
+            throw new BaseForbiddenRestException();
+        }
     }
 
     @Override

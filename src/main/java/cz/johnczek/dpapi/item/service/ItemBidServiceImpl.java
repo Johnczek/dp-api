@@ -5,6 +5,7 @@ import cz.johnczek.dpapi.item.repository.ItemBidRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
@@ -21,6 +22,7 @@ public class ItemBidServiceImpl implements ItemBidService {
     private final ItemBidRepository itemBidRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public Map<Long, ItemHighestBidDto> findHighestBidByItemIds(@NonNull Set<Long> itemIds) {
 
         if (CollectionUtils.isEmpty(itemIds)) {
@@ -35,6 +37,7 @@ public class ItemBidServiceImpl implements ItemBidService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<ItemHighestBidDto> findHighestBidByItemId(long itemId) {
         Map<Long, ItemHighestBidDto> highestBidByItemIds = findHighestBidByItemIds(Collections.singleton(itemId));
 

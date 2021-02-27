@@ -1,23 +1,21 @@
-package cz.johnczek.dpapi.order.dto;
+package cz.johnczek.dpapi.cart.response;
 
 import cz.johnczek.dpapi.item.dto.ItemDto;
+import cz.johnczek.dpapi.user.dto.UserDto;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
-@Getter
 @Setter
+@Getter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderDto {
+public class CartItemResponse {
 
-    Long orderId;
+    long userId;
 
-    ItemDto item;
-
-    LocalDateTime created;
-
+    ItemDto cartItem;
 }

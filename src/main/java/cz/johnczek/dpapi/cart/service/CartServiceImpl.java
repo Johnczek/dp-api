@@ -22,10 +22,6 @@ public class CartServiceImpl implements CartService {
 
     private final ItemService itemService;
 
-    private final ItemBidService itemBidService;
-
-    private final UserService userService;
-
     @Override
     @Transactional(readOnly = true)
     public CartResponse getCartForLoggedUser() {

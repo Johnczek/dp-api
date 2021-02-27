@@ -1,7 +1,6 @@
 package cz.johnczek.dpapi.user.service;
 
 import cz.johnczek.dpapi.core.errorhandling.exception.BankAccountNotFoundRestException;
-import cz.johnczek.dpapi.user.dto.AddressDto;
 import cz.johnczek.dpapi.user.dto.BankAccountDto;
 import cz.johnczek.dpapi.user.entity.BankAccountEntity;
 import cz.johnczek.dpapi.user.entity.UserEntity;

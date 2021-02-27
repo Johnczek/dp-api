@@ -5,6 +5,7 @@ import cz.johnczek.dpapi.core.errorhandling.exception.BaseForbiddenRestException
 import cz.johnczek.dpapi.core.errorhandling.exception.FileNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.RoleNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.UserAlreadyExistsRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.UserNotFoundOrIncorrectPasswordRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.UserNotFoundRestException;
 import cz.johnczek.dpapi.core.security.SecurityUtils;
 import cz.johnczek.dpapi.core.security.jwt.JwtUtils;
@@ -34,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -77,14 +79,23 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public JwtResponse login(@NonNull String email, @NonNull String password) {
-        Authentication authentication = authenticationManager.authenticate(
+
+        Authentication authentication;
+
+        try {
+         authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, password));
+        } catch (AuthenticationException e) {
+            log.error("Authentication for user with login {} failed, bad credentials", email, e);
+
+            throw new UserNotFoundOrIncorrectPasswordRestException();
+        }
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwtToken = jwtUtils.generateJwtToken(authentication);
         LoggedUserDetails user = (LoggedUserDetails) authentication.getPrincipal();
 
         return getJwtResponse(jwtToken, user);
-
     }
 
     @Override
@@ -238,6 +249,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<UserEntity> findEntityById(long userId) {
 
         UserEntity user = userRepository.findByUserId(userId).orElseThrow(() -> {
@@ -249,6 +261,14 @@ public class UserServiceImpl implements UserService {
         return Optional.of(user);
     }
 
+    /**
+     * Method checks if currently logged person has right to edit user with given id
+     *
+     * @param id id if user to be checked
+     * @return desired user entity
+     * @throws UserNotFoundRestException if user could not be found
+     * @throws BaseForbiddenRestException if logged user is not the same as user with given id
+     */
     private UserEntity checkUserPermissionEditability(long id) {
 
         LoggedUserDetails loggedUser = getLoggedPerson();
@@ -269,6 +289,10 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    /**
+     * @return currently logged person
+     * @throws BaseForbiddenRestException in case that there is no logged user
+     */
     private LoggedUserDetails getLoggedPerson() {
         return SecurityUtils.getLoggedUser().orElseThrow(() -> {
             log.error("Getting logged person failed. No user logged");
@@ -277,6 +301,13 @@ public class UserServiceImpl implements UserService {
         });
     }
 
+    /**
+     * Method generated response for successfull user login request
+     *
+     * @param jwtToken user jwt token
+     * @param user user data
+     * @return filled response object
+     */
     private JwtResponse getJwtResponse(@NonNull String jwtToken, LoggedUserDetails user) {
         return JwtResponse.builder()
                 .id(user.getId())

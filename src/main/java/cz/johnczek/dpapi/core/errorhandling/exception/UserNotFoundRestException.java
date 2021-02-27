@@ -2,7 +2,7 @@ package cz.johnczek.dpapi.core.errorhandling.exception;
 
 public class UserNotFoundRestException extends BaseNotFoundRestException {
 
-    private static final String EXCEPTION_MESSAGE_CODE = "error.user.notFoundOrIncorrectPassword";
+    private static final String EXCEPTION_MESSAGE_CODE = "error.user.notFound";
 
     public UserNotFoundRestException(long id) {
         super(EXCEPTION_MESSAGE_CODE, new Object[]{id});

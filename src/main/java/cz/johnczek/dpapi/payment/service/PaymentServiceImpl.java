@@ -8,6 +8,7 @@ import cz.johnczek.dpapi.payment.repository.PaymentRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
@@ -27,21 +28,19 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentMapper paymentMapper;
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<PaymentDto> getAllPaymentTypes() {
         return paymentRepository.findAll().stream().map(paymentMapper::entityToDto).collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<PaymentEntity> findById(long paymentId) {
         return paymentRepository.findById(paymentId);
     }
 
     @Override
-    public Optional<PaymentDto> findDtoById(long paymentId) {
-        return paymentRepository.findById(paymentId).map(paymentMapper::entityToDto);
-    }
-
-    @Override
+    @Transactional(readOnly = true)
     public Map<Long, PaymentDto> findByItemIds(@NonNull Set<Long> itemIds) {
 
         if (CollectionUtils.isEmpty(itemIds)) {

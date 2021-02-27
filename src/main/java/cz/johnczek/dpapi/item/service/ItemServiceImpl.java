@@ -387,6 +387,13 @@ public class ItemServiceImpl implements ItemService {
         item.setState(ItemState.CANCELLED);
     }
 
+    /**
+     * Method checks if logged person has rights to access and edit given item.
+     *
+     * @param item item we want to perform check for
+     * @throws BaseForbiddenRestException in case that logged person was not found
+     * or logged person has no permission to edit given item
+     */
     private void checkLoggedPersonPermissionToItem(@NonNull ItemEntity item) {
 
         LoggedUserDetails loggedUser = SecurityUtils.getLoggedUser().orElseThrow(() -> {
@@ -404,6 +411,11 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
+    /**
+     * Method checks if given item is in editable state.
+     *
+     * @param item item we want to perform check for
+     */
     private void checkItemEditability(@NonNull ItemEntity item) {
 
         if (item.getState() != ItemState.ACTIVE) {

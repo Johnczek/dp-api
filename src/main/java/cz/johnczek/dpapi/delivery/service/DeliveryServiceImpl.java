@@ -8,6 +8,7 @@ import cz.johnczek.dpapi.delivery.repository.DeliveryRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
@@ -27,21 +28,19 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final DeliveryMapper deliveryMapper;
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<DeliveryDto> getAllDeliveryTypes() {
         return deliveryRepository.findAll().stream().map(deliveryMapper::entityToDto).collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<DeliveryEntity> findById(long deliveryId) {
         return deliveryRepository.findById(deliveryId);
     }
 
     @Override
-    public Optional<DeliveryDto> findDtoById(long deliveryId) {
-        return deliveryRepository.findById(deliveryId).map(deliveryMapper::entityToDto);
-    }
-
-    @Override
+    @Transactional(readOnly = true)
     public Map<Long, DeliveryDto> findByItemIds(@NonNull Set<Long> itemIds) {
         if (CollectionUtils.isEmpty(itemIds)) {
             return Collections.emptyMap();

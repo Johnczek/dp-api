@@ -1,12 +1,15 @@
 package cz.johnczek.dpapi.order.service;
 
 import cz.johnczek.dpapi.core.errorhandling.exception.BaseForbiddenRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotBuyableRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.UserNotFoundRestException;
 import cz.johnczek.dpapi.core.security.SecurityUtils;
 import cz.johnczek.dpapi.item.dto.ItemDto;
+import cz.johnczek.dpapi.item.dto.ItemHighestBidDto;
 import cz.johnczek.dpapi.item.entity.ItemEntity;
 import cz.johnczek.dpapi.item.enums.ItemState;
+import cz.johnczek.dpapi.item.service.ItemBidService;
 import cz.johnczek.dpapi.item.service.ItemService;
 import cz.johnczek.dpapi.order.dto.OrderDto;
 import cz.johnczek.dpapi.order.entity.OrderEntity;
@@ -28,7 +31,6 @@ import org.springframework.util.CollectionUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,6 +48,8 @@ public class OrderServiceImpl implements OrderService {
 
     private final ItemService itemService;
 
+    private final ItemBidService itemBidService;
+
     private final OrderMapper ordermapper;
 
     @Override
@@ -53,22 +57,35 @@ public class OrderServiceImpl implements OrderService {
     public OrderCreationResponse createOrder(long itemId) {
 
         LoggedUserDetails loggedUser = SecurityUtils.getLoggedUser().orElseThrow(() -> {
-            log.error("Creating order failed. No user logged");
+            log.error("Creating order for item {} failed. No user logged", itemId);
 
             return new BaseForbiddenRestException();
         });
 
         UserEntity buyer = userService.findEntityById(loggedUser.getId()).orElseThrow(() -> {
-            log.error("Creating order failed. Logged user with id {} not found in database", loggedUser.getId());
+            log.error("Creating order for item {} failed. Logged user with id {} not found in database", itemId, loggedUser.getId());
 
             return new UserNotFoundRestException(loggedUser.getId());
         });
 
         ItemEntity item = itemService.findEntityById(itemId).orElseThrow(() -> {
-            log.error("Creating order failed. Item with id {} not found", itemId);
+            log.error("Creating order for item {} failed. Item with given id not found", itemId);
 
             return new ItemNotFoundRestException(itemId);
         });
+
+        ItemHighestBidDto itemHighestBidDto = itemBidService.findHighestBidByItemId(itemId).orElseThrow(() -> {
+            log.error("Creating order for item {} failed. Unable to retrieve highest bid info", itemId);
+
+            return new ItemNotBuyableRestException();
+        });
+
+        if (!itemHighestBidDto.getUserId().equals(loggedUser.getId())) {
+            log.error("Creating order for item {} failed. Logged user with id {} is not owner of highest bid, owner is user with id {}",
+                    itemId, loggedUser.getId(), itemHighestBidDto.getItemId());
+
+            throw new BaseForbiddenRestException();
+        }
 
         item.setState(ItemState.SOLD);
 
@@ -127,8 +144,6 @@ public class OrderServiceImpl implements OrderService {
                         usersMap.get(o.getSeller().getId()),
                         itemsMap.get(o.getItem().getId())))
                 .collect(Collectors.toList());
-
-
     }
 
     @Override

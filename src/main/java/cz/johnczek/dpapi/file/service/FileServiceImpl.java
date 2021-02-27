@@ -15,6 +15,7 @@ import org.apache.tika.mime.MimeTypes;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,6 +40,7 @@ public class FileServiceImpl implements FileService {
     private final FileRepository fileRepository;
 
     @Override
+    @Transactional
     public Optional<String> storeFile(@NonNull MultipartFile multipartFile, @NonNull FileType fileType) {
 
         String originalFileName = multipartFile.getOriginalFilename();
@@ -76,6 +78,8 @@ public class FileServiceImpl implements FileService {
         return Optional.ofNullable(uuid.toString());
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public Optional<Resource> loadFile(@NonNull String fileUUID) {
 
         FileEntity fileEntity = fileRepository.findByFileIdentifier(fileUUID).orElseThrow(() -> {
@@ -107,10 +111,14 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<FileEntity> findByFileIdentifier(@NonNull String uuid) {
         return fileRepository.findByFileIdentifier(uuid);
     }
 
+    /**
+     * Method prepares file entity.
+     */
     private FileEntity prepare(@NonNull String identifier, @NonNull String extension, @NonNull FileType fileType) {
         FileEntity result = new FileEntity();
         result.setFileIdentifier(identifier);
@@ -120,6 +128,9 @@ public class FileServiceImpl implements FileService {
         return result;
     }
 
+    /**
+     * @return location where all files should be stored
+     */
     private Path getFileLocation() {
         if (fileLocation != null) {
             return fileLocation;

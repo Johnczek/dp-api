@@ -8,5 +8,9 @@ import java.util.Optional;
 
 public interface RoleService {
 
+    /**
+     * @param role role we want to find
+     * @return corresponding role entity, empty optional in case role could not be found or retrieved
+     */
     Optional<RoleEntity> findByCode(@NonNull RoleEnum role);
 }

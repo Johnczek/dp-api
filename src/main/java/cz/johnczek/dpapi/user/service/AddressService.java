@@ -6,6 +6,7 @@ import cz.johnczek.dpapi.user.request.AddressCreationRequest;
 import lombok.NonNull;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface AddressService {
@@ -15,4 +16,6 @@ public interface AddressService {
     void deleteAddress(long addressId, long userId);
 
     List<AddressDto> findByUserId(long userId);
+
+    Map<Long, List<AddressDto>> findByUserIds(@NonNull List<Long> userIds);
 }

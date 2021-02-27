@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -217,6 +218,23 @@ public class UserServiceImpl implements UserService {
         List<BankAccountDto> bankAccounts = bankAccountService.findByUserId(userId);
 
         return Optional.of(userMapper.entityToDto(user, addresses, bankAccounts));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, UserDto> findByUserIds(@NonNull List<Long> userIds) {
+
+        if (CollectionUtils.isEmpty(userIds)) {
+            return Collections.emptyMap();
+        }
+
+        List<UserEntity> users = userRepository.findByUserIds(userIds);
+        Map<Long, List<AddressDto>> addressesMap = addressService.findByUserIds(userIds);
+        Map<Long, List<BankAccountDto>> bankAccountsMap = bankAccountService.findByUserIds(userIds);
+
+        return users.stream()
+                .map(u -> userMapper.entityToDto(u, addressesMap.get(u.getId()), bankAccountsMap.get(u.getId())))
+                .collect(Collectors.toMap(UserDto::getId, Function.identity()));
     }
 
     @Override

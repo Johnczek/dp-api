@@ -12,10 +12,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.groupingBy;
 
 @Slf4j
 @Service
@@ -50,9 +55,23 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AddressDto> findByUserId(long userId) {
         return addressRepository.findByUserId(userId).stream()
                 .map(addressMapper::entityToDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, List<AddressDto>> findByUserIds(@NonNull List<Long> userIds) {
+
+        if (CollectionUtils.isEmpty(userIds)) {
+            return Collections.emptyMap();
+        }
+
+        return addressRepository.findByUserIds(userIds).stream()
+                .map(addressMapper::entityToDto)
+                .collect(groupingBy(AddressDto::getUserId));
     }
 }

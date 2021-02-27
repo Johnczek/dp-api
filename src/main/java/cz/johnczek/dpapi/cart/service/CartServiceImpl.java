@@ -3,7 +3,6 @@ package cz.johnczek.dpapi.cart.service;
 import cz.johnczek.dpapi.cart.response.CartItemResponse;
 import cz.johnczek.dpapi.cart.response.CartResponse;
 import cz.johnczek.dpapi.core.errorhandling.exception.BaseForbiddenRestException;
-import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotBuyableRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotFoundRestException;
 import cz.johnczek.dpapi.core.security.SecurityUtils;
 import cz.johnczek.dpapi.item.dto.ItemDto;

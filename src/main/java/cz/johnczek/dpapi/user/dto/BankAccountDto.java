@@ -16,4 +16,6 @@ public class BankAccountDto {
     private long number;
 
     private int bankCode;
+
+    private long userId;
 }

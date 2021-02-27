@@ -1,6 +1,7 @@
 package cz.johnczek.dpapi.order.dto;
 
 import cz.johnczek.dpapi.item.dto.ItemDto;
+import cz.johnczek.dpapi.user.dto.UserDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,10 +15,14 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class OrderDto {
 
-    Long orderId;
+    private Long orderId;
 
-    ItemDto item;
+    private ItemDto item;
 
-    LocalDateTime created;
+    private UserDto buyer;
+
+    private UserDto seller;
+
+    private LocalDateTime created;
 
 }

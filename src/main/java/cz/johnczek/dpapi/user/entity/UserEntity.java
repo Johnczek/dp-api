@@ -3,6 +3,7 @@ package cz.johnczek.dpapi.user.entity;
 import cz.johnczek.dpapi.core.persistence.AbstractIdBasedEntity;
 import cz.johnczek.dpapi.file.entity.FileEntity;
 import cz.johnczek.dpapi.item.entity.ItemBidEntity;
+import cz.johnczek.dpapi.order.entity.OrderEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -54,4 +55,10 @@ public class UserEntity extends AbstractIdBasedEntity<Long> {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AddressEntity> addresses = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "buyer", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderEntity> boughtOrders = new ArrayList<>();
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "seller", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderEntity> soldOrders = new ArrayList<>();
 }

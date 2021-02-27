@@ -13,6 +13,7 @@ import cz.johnczek.dpapi.user.request.RegisterRequest;
 import cz.johnczek.dpapi.user.response.JwtResponse;
 import lombok.NonNull;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -42,6 +43,8 @@ public interface UserService {
     void deleteAddress(long addressId, long userId);
 
     Optional<UserDto> findById(long userId);
+
+    Map<Long, UserDto> findByUserIds(@NonNull List<Long> userIds);
 
     Optional<UserEntity> findEntityById(long userId);
 }

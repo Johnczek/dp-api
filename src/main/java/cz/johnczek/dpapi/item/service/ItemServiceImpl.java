@@ -1,5 +1,6 @@
 package cz.johnczek.dpapi.item.service;
 
+import com.google.common.collect.Maps;
 import cz.johnczek.dpapi.core.errorhandling.exception.BaseForbiddenRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.DeliveryNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.FileNotFoundRestException;
@@ -94,6 +95,17 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional(readOnly = true)
+    public Map<Long, ItemDto> findByItemIdsMap(@NonNull Set<Long> itemIds) {
+
+        if (CollectionUtils.isEmpty(itemIds)) {
+            return Collections.emptyMap();
+        }
+
+        return Maps.uniqueIndex(findByItemIds(itemIds), ItemDto::getId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<ItemDto> findBySellerId(long sellerId) {
         Set<Long> itemIds = itemRepository.findAllActiveIdsBySellerId(sellerId);
         if (CollectionUtils.isEmpty(itemIds)) {
@@ -119,6 +131,12 @@ public class ItemServiceImpl implements ItemService {
     public Optional<ItemDto> findByItemId(long itemId) {
         return findByItemIds(Collections.singleton(itemId)).stream()
                 .findFirst();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<ItemEntity> findEntityById(long itemId) {
+        return itemRepository.findByIdWithFieldsFetched(itemId);
     }
 
     @Override

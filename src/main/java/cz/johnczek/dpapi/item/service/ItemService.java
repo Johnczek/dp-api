@@ -1,6 +1,7 @@
 package cz.johnczek.dpapi.item.service;
 
 import cz.johnczek.dpapi.item.dto.ItemDto;
+import cz.johnczek.dpapi.item.entity.ItemEntity;
 import cz.johnczek.dpapi.item.request.ItemChangeDeliveryRequest;
 import cz.johnczek.dpapi.item.request.ItemChangePaymentRequest;
 import cz.johnczek.dpapi.item.request.ItemChangePictureRequest;
@@ -11,6 +12,7 @@ import cz.johnczek.dpapi.item.response.ItemEditOptionsResponse;
 import lombok.NonNull;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -20,9 +22,13 @@ public interface ItemService {
 
     Optional<ItemDto> findByItemId(long itemId);
 
+    Optional<ItemEntity> findEntityById(long itemId);
+
     ItemEditOptionsResponse findByItemIdForEdit(long itemId);
 
     List<ItemDto> findByItemIds(@NonNull Set<Long> itemIds);
+
+    Map<Long, ItemDto> findByItemIdsMap(@NonNull Set<Long> itemIds);
 
     List<ItemDto> findBySellerId(long sellerId);
 

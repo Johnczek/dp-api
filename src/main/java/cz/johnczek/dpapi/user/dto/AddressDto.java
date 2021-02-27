@@ -18,4 +18,6 @@ public class AddressDto {
     private String zipcode;
 
     private String city;
+
+    private long userId;
 }

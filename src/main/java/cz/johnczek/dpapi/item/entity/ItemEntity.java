@@ -4,6 +4,7 @@ import cz.johnczek.dpapi.core.persistence.AbstractIdBasedEntity;
 import cz.johnczek.dpapi.delivery.entity.DeliveryEntity;
 import cz.johnczek.dpapi.file.entity.FileEntity;
 import cz.johnczek.dpapi.item.enums.ItemState;
+import cz.johnczek.dpapi.order.entity.OrderEntity;
 import cz.johnczek.dpapi.payment.entity.PaymentEntity;
 import cz.johnczek.dpapi.user.entity.UserEntity;
 import lombok.Getter;
@@ -65,4 +66,7 @@ public class ItemEntity extends AbstractIdBasedEntity<Long> {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ItemBidEntity> bids = new HashSet<>();
+
+    @OneToOne(fetch = FetchType.LAZY)
+    private OrderEntity order;
 }

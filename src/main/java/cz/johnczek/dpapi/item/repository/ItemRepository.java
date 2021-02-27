@@ -44,6 +44,6 @@ public interface ItemRepository extends JpaRepository<ItemEntity, Long> {
             "       from item i " +
             "                join item_bid ib on (i.id = ib.item_id) " +
             "       group by ib.item_id) " +
-            "  and ib.buyer_id = :buyerId", nativeQuery = true)
+            "  and ib.buyer_id = :buyerId and i.state = 'AUCTIONED'", nativeQuery = true)
     Set<Long> findAllIdsForCartByBuyerId(@Param("buyerId") long buyerId);
 }

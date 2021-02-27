@@ -67,6 +67,6 @@ public class ItemEntity extends AbstractIdBasedEntity<Long> {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ItemBidEntity> bids = new HashSet<>();
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "item")
     private OrderEntity order;
 }

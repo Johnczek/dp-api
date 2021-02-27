@@ -6,6 +6,7 @@ import cz.johnczek.dpapi.core.errorhandling.exception.UserNotFoundRestException;
 import cz.johnczek.dpapi.core.security.SecurityUtils;
 import cz.johnczek.dpapi.item.dto.ItemDto;
 import cz.johnczek.dpapi.item.entity.ItemEntity;
+import cz.johnczek.dpapi.item.enums.ItemState;
 import cz.johnczek.dpapi.item.service.ItemService;
 import cz.johnczek.dpapi.order.dto.OrderDto;
 import cz.johnczek.dpapi.order.entity.OrderEntity;
@@ -69,6 +70,8 @@ public class OrderServiceImpl implements OrderService {
             return new ItemNotFoundRestException(itemId);
         });
 
+        item.setState(ItemState.SOLD);
+
         OrderEntity order = new OrderEntity();
         order.setCreated(LocalDateTime.now());
         order.setBuyer(buyer);
@@ -111,11 +114,12 @@ public class OrderServiceImpl implements OrderService {
         List<Long> buyerIds = orders.stream()
                 .map(o -> o.getBuyer().getId()).collect(Collectors.toList());
         sellerIds.addAll(buyerIds);
-
         List<Long> userIds = new ArrayList<>(sellerIds);
 
         Map<Long, UserDto> usersMap = userService.findByUserIds(userIds);
-        Map<Long, ItemDto> itemsMap = itemService.findByItemIdsMap(new HashSet<>(userIds));
+
+        Set<Long> itemIds = orders.stream().map(o -> o.getItem().getId()).collect(Collectors.toSet());
+        Map<Long, ItemDto> itemsMap = itemService.findByItemIdsMap(itemIds);
 
         return orders.stream()
                 .map(o -> ordermapper.entityToDto(o,

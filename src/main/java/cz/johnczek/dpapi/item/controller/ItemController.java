@@ -46,9 +46,9 @@ public class ItemController {
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ItemDto> createItem(@NonNull @RequestBody @Valid ItemCreationRequest request) {
 
-        Optional<ItemDto> itemOps = itemService.createItem(request);
+        Optional<ItemDto> itemOpt = itemService.createItem(request);
 
-        return itemOps
+        return itemOpt
                 .map(i -> new ResponseEntity<>(i, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
 
@@ -67,9 +67,9 @@ public class ItemController {
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ItemDto> getById(@PathVariable("id") long id) {
 
-        Optional<ItemDto> itemOps = itemService.findByItemId(id);
+        Optional<ItemDto> itemOpt = itemService.findByItemId(id);
 
-        return itemOps
+        return itemOpt
                 .map(i -> new ResponseEntity<>(i, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }

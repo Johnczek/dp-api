@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
@@ -14,4 +15,6 @@ public class ItemHighestBidDto {
     private final BigDecimal amount;
 
     private final Long userId;
+
+    private final LocalDateTime time;
 }

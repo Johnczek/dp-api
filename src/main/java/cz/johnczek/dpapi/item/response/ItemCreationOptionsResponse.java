@@ -15,7 +15,7 @@ import java.util.Collection;
 @AllArgsConstructor
 public class ItemCreationOptionsResponse {
 
-    Collection<DeliveryDto> deliveries;
+    private Collection<DeliveryDto> deliveries;
 
-    Collection<PaymentDto> payments;
+    private Collection<PaymentDto> payments;
 }

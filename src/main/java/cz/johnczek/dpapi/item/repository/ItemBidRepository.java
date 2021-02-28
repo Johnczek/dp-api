@@ -12,7 +12,7 @@ import java.util.Set;
 
 public interface ItemBidRepository extends JpaRepository<ItemBidEntity, Long> {
 
-    @Query("select new cz.johnczek.dpapi.item.dto.ItemHighestBidDto(ib.item.id, ib.amount, ib.buyer.id) " +
+    @Query("select new cz.johnczek.dpapi.item.dto.ItemHighestBidDto(ib.item.id, ib.amount, ib.buyer.id, ib.time) " +
             "from ItemBidEntity ib " +
             "where ib.item.id in (:itemIds)")
     Collection<ItemHighestBidDto> findBidsByItemIds(@NonNull @Param("itemIds") Set<Long> itemIds);

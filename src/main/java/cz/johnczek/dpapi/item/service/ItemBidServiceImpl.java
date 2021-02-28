@@ -1,13 +1,19 @@
 package cz.johnczek.dpapi.item.service;
 
 import cz.johnczek.dpapi.item.dto.ItemHighestBidDto;
+import cz.johnczek.dpapi.item.entity.ItemBidEntity;
+import cz.johnczek.dpapi.item.entity.ItemEntity;
+import cz.johnczek.dpapi.item.mapper.ItemBidMapper;
 import cz.johnczek.dpapi.item.repository.ItemBidRepository;
+import cz.johnczek.dpapi.user.entity.UserEntity;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -20,6 +26,8 @@ import java.util.stream.Collectors;
 public class ItemBidServiceImpl implements ItemBidService {
 
     private final ItemBidRepository itemBidRepository;
+
+    private final ItemBidMapper itemBidMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -47,5 +55,19 @@ public class ItemBidServiceImpl implements ItemBidService {
         } else {
             return Optional.empty();
         }
+    }
+
+    @Override
+    @Transactional
+    public Optional<ItemHighestBidDto> createBid(ItemEntity item, UserEntity user, @NonNull BigDecimal amount, LocalDateTime time) {
+
+        ItemBidEntity itemBid = new ItemBidEntity();
+        itemBid.setItem(item);
+        itemBid.setBuyer(user);
+        itemBid.setAmount(amount);
+        itemBid.setTime(time);
+        itemBidRepository.save(itemBid);
+
+        return Optional.ofNullable(itemBidMapper.entityToHighestBidDto(itemBid));
     }
 }

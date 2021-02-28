@@ -7,7 +7,9 @@ import cz.johnczek.dpapi.core.errorhandling.exception.FileNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemInNotEditableStateRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotBuyableRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotFoundRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.NotEnoughAmountBidException;
 import cz.johnczek.dpapi.core.errorhandling.exception.PaymentNotFoundRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.UserAlreadyHasHighestBidException;
 import cz.johnczek.dpapi.core.errorhandling.exception.UserNotFoundRestException;
 import cz.johnczek.dpapi.core.persistence.AbstractIdBasedEntity;
 import cz.johnczek.dpapi.core.security.SecurityUtils;
@@ -27,8 +29,10 @@ import cz.johnczek.dpapi.item.request.ItemChangePaymentRequest;
 import cz.johnczek.dpapi.item.request.ItemChangePictureRequest;
 import cz.johnczek.dpapi.item.request.ItemChangeRequest;
 import cz.johnczek.dpapi.item.request.ItemCreationRequest;
+import cz.johnczek.dpapi.item.request.ItemWsBidRequest;
 import cz.johnczek.dpapi.item.response.ItemCreationOptionsResponse;
 import cz.johnczek.dpapi.item.response.ItemEditOptionsResponse;
+import cz.johnczek.dpapi.item.response.ItemWsInfoResponse;
 import cz.johnczek.dpapi.payment.dto.PaymentDto;
 import cz.johnczek.dpapi.payment.entity.PaymentEntity;
 import cz.johnczek.dpapi.payment.service.PaymentService;
@@ -44,6 +48,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -241,6 +246,81 @@ public class ItemServiceImpl implements ItemService {
         if (!itemHighestBid.getUserId().equals(loggedUser.getId())) {
             throw new BaseForbiddenRestException();
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ItemWsInfoResponse findHighestBidByItemId(long itemId) {
+
+        Optional<ItemHighestBidDto> highestBidDtoOpt = itemBidService.findHighestBidByItemId(itemId);
+        Optional<ItemState> itemStateOpt = itemRepository.findStateByItemId(itemId);
+
+        return ItemWsInfoResponse.builder()
+                .itemHighestBidDto(highestBidDtoOpt.orElse(null))
+                .itemState(itemStateOpt.orElse(null))
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public Optional<ItemWsInfoResponse> bid(long itemId, @NonNull ItemWsBidRequest request, LocalDateTime currentTime) {
+
+        LoggedUserDetails loggedUser = SecurityUtils.getLoggedUser().orElseThrow(() -> {
+            log.error("Bidding on item with id {} failed. Logged user not found", itemId);
+
+            return new BaseForbiddenRestException();
+        });
+
+        ItemEntity item = itemRepository.findByIdWithFieldsFetched(itemId).orElseThrow(() -> {
+
+            log.error("Bidding on item with id {} failed. Item not found", itemId);
+
+            return new ItemNotFoundRestException(itemId);
+        });
+
+        if (item.getState() != ItemState.ACTIVE) {
+            return Optional.empty();
+        }
+
+        if (item.getValidTo().isAfter(currentTime)) {
+            return Optional.empty();
+        }
+
+        itemBidService.findHighestBidByItemId(itemId).ifPresentOrElse((ItemHighestBidDto dto) -> {
+            if (dto.getUserId().equals(loggedUser.getId())) {
+                log.error("Bidding on item with id {} failed. Logged user with id is already owner of highest bid", itemId);
+
+                throw new UserAlreadyHasHighestBidException();
+            }
+
+            if (dto.getAmount().compareTo(request.getAmount()) >= 0) {
+                log.error("Bidding on item with id {} failed. Given amount {} is not greater than actual highest bid {}",
+                        itemId, request.getAmount(), dto.getAmount());
+
+                throw new NotEnoughAmountBidException();
+            }
+
+        }, () -> {
+            if (item.getStartingPrice().compareTo(request.getAmount()) >= 0) {
+                log.error("Bidding on item with id {} failed. Given amount {} is not greater than starting price {}",
+                        itemId, request.getAmount(), item.getStartingPrice());
+
+                throw new NotEnoughAmountBidException();
+            }
+        });
+
+        UserEntity user = userService.findEntityById(loggedUser.getId()).orElseThrow(() -> {
+            log.error("Bidding on item with id {} failed. . Logged person with id {} not found", itemId, loggedUser.getId());
+
+            return new UserNotFoundRestException(loggedUser.getId());
+        });
+
+        return Optional.of(
+                ItemWsInfoResponse.builder()
+                .itemState(item.getState())
+                .itemHighestBidDto(itemBidService.createBid(item, user, request.getAmount(), currentTime).orElse(null))
+                .build()
+        );
     }
 
     @Override

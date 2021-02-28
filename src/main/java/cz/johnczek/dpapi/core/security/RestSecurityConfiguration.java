@@ -46,6 +46,7 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
+    // TODO change configuration
     protected void configure(HttpSecurity http) throws Exception {
 
 //        http.cors().and().csrf().disable()

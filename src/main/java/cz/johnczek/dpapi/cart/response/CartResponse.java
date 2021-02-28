@@ -16,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 public class CartResponse {
 
-    long userId;
+    private long userId;
 
-    List<ItemDto> cartItems;
+    private List<ItemDto> cartItems;
 }

@@ -17,9 +17,9 @@ import java.util.Collection;
 @AllArgsConstructor
 public class ItemEditOptionsResponse {
 
-    ItemDto item;
+    private ItemDto item;
 
-    Collection<DeliveryDto> deliveries;
+    private Collection<DeliveryDto> deliveries;
 
-    Collection<PaymentDto> payments;
+    private Collection<PaymentDto> payments;
 }

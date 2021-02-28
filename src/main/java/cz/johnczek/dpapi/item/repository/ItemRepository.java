@@ -1,6 +1,7 @@
 package cz.johnczek.dpapi.item.repository;
 
 import cz.johnczek.dpapi.item.entity.ItemEntity;
+import cz.johnczek.dpapi.item.enums.ItemState;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -46,4 +47,7 @@ public interface ItemRepository extends JpaRepository<ItemEntity, Long> {
             "       group by ib.item_id) " +
             "  and ib.buyer_id = :buyerId and i.state = 'AUCTIONED'", nativeQuery = true)
     Set<Long> findAllIdsForCartByBuyerId(@Param("buyerId") long buyerId);
+
+    @Query("select i.state from ItemEntity i where i.id = :itemId")
+    Optional<ItemState> findStateByItemId(@Param("itemId") long itemId);
 }

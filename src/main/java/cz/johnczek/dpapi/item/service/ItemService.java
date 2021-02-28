@@ -15,10 +15,13 @@ import cz.johnczek.dpapi.item.request.ItemChangePaymentRequest;
 import cz.johnczek.dpapi.item.request.ItemChangePictureRequest;
 import cz.johnczek.dpapi.item.request.ItemChangeRequest;
 import cz.johnczek.dpapi.item.request.ItemCreationRequest;
+import cz.johnczek.dpapi.item.request.ItemWsBidRequest;
 import cz.johnczek.dpapi.item.response.ItemCreationOptionsResponse;
 import cz.johnczek.dpapi.item.response.ItemEditOptionsResponse;
+import cz.johnczek.dpapi.item.response.ItemWsInfoResponse;
 import lombok.NonNull;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -148,4 +151,12 @@ public interface ItemService {
      * @throws ItemNotBuyableRestException in case we are unable to find highest bid for given item
      */
     void checkItemBuyability(long itemId);
+
+    /**
+     * @see ItemBidService#findHighestBidByItemId(long)
+     * @return dto of current highest bid and current item state
+     */
+    ItemWsInfoResponse findHighestBidByItemId(long itemId);
+
+    Optional<ItemWsInfoResponse> bid(long itemId, @NonNull ItemWsBidRequest request, LocalDateTime currentTime);
 }

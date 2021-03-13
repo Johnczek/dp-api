@@ -157,7 +157,6 @@ public interface ItemService {
     /**
      * Method makes a bid on item if possible.
      *
-     * @param itemId item for which we want to make a bid
      * @param request request holding amount and user jwt token
      * @param currentTime current time from BE system
      * @return optional holding information about bid if bid was successfull, empty optional otherwise
@@ -166,5 +165,5 @@ public interface ItemService {
      * @throws UserAlreadyHasHighestBidException in case that user already owns the highest bid for item
      * @throws NotEnoughAmountBidException in case that given amount is not enough to create highest bid
      */
-    Optional<ItemWsInfoResponse> bid(long itemId, @NonNull ItemWsBidRequest request, LocalDateTime currentTime);
+    Optional<ItemWsInfoResponse> bid(@NonNull ItemWsBidRequest request, LocalDateTime currentTime);
 }

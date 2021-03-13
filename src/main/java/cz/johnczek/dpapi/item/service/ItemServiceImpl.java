@@ -23,6 +23,7 @@ import cz.johnczek.dpapi.item.dto.ItemDto;
 import cz.johnczek.dpapi.item.dto.ItemHighestBidDto;
 import cz.johnczek.dpapi.item.entity.ItemEntity;
 import cz.johnczek.dpapi.item.enums.ItemState;
+import cz.johnczek.dpapi.item.enums.WsBidState;
 import cz.johnczek.dpapi.item.mapper.ItemMapper;
 import cz.johnczek.dpapi.item.repository.ItemRepository;
 import cz.johnczek.dpapi.item.request.ItemChangeDeliveryRequest;
@@ -254,11 +255,12 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public Optional<ItemWsInfoResponse> bid(long itemId, @NonNull @Valid ItemWsBidRequest request, LocalDateTime currentTime) {
+    public Optional<ItemWsInfoResponse> bid(@NonNull @Valid ItemWsBidRequest request, LocalDateTime currentTime) {
 
         String userEmailFromToken = jwtUtils.getUserEmailFromToken(request.getUserJwtToken());
+        long itemId = request.getItemId();
 
-        UserDto userByEmail = userService.findUserByEmail(userEmailFromToken).orElseThrow(() -> {
+        UserEntity user = userService.findUserByEmail(userEmailFromToken).orElseThrow(() -> {
             log.error("Bidding on item with id {} failed. Logged user not found", itemId);
 
             return new BaseForbiddenRestException();
@@ -272,15 +274,20 @@ public class ItemServiceImpl implements ItemService {
         });
 
         if (item.getState() != ItemState.ACTIVE) {
+            log.error("Bidding on item with id {} failed. Item is not active", itemId);
             return Optional.empty();
         }
 
-        if (item.getValidTo().isAfter(currentTime)) {
+        if (currentTime.isAfter(item.getValidTo())) {
+            log.error("Bidding on item with id {} failed. Item validity ended", itemId);
+
+            // TODO run end item job
+
             return Optional.empty();
         }
 
         itemBidService.findHighestBidByItemId(itemId).ifPresentOrElse((ItemHighestBidDto dto) -> {
-            if (dto.getUserId().equals(userByEmail.getId())) {
+            if (dto.getUserId().equals(user.getId())) {
                 log.error("Bidding on item with id {} failed. Logged user with id is already owner of highest bid", itemId);
 
                 throw new UserAlreadyHasHighestBidException();
@@ -302,19 +309,16 @@ public class ItemServiceImpl implements ItemService {
             }
         });
 
-        UserEntity user = userService.findEntityById(userByEmail.getId()).orElseThrow(() -> {
-            log.error("Bidding on item with id {} failed. . Logged person with id {} not found", itemId, userByEmail.getId());
-
-            return new UserNotFoundRestException(userByEmail.getId());
-        });
-
         return Optional.of(
                 ItemWsInfoResponse.builder()
-                .itemState(item.getState())
-                .itemHighestBidDto(itemBidService.createBid(item, user, request.getAmount(), currentTime).orElse(null))
-                .build()
+                        .itemState(item.getState())
+                        .itemHighestBidDto(itemBidService.createBid(item, user, request.getAmount(), currentTime).orElse(null))
+                        .state(WsBidState.SUCCESSFULL)
+                        .message("Příhoz byl úspěšný")
+                        .build()
         );
     }
+
 
     @Override
     @Transactional
@@ -465,7 +469,7 @@ public class ItemServiceImpl implements ItemService {
      *
      * @param item item we want to perform check for
      * @throws BaseForbiddenRestException in case that logged person was not found
-     * or logged person has no permission to edit given item
+     *                                    or logged person has no permission to edit given item
      */
     private void checkLoggedPersonPermissionToItem(@NonNull ItemEntity item) {
 

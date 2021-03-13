@@ -263,11 +263,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<UserDto> findUserByEmail(@NonNull String userEmailFromToken) {
-
-        Optional<UserEntity> userOpt = userRepository.findByUserEmail(userEmailFromToken);
-
-        return userOpt.map(userMapper::entityToDto);
+    public Optional<UserEntity> findUserByEmail(@NonNull String userEmailFromToken) {
+        return userRepository.findByUserEmail(userEmailFromToken);
     }
 
     /**

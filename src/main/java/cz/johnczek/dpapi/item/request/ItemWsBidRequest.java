@@ -19,4 +19,7 @@ public class ItemWsBidRequest {
 
     @NotNull
     private BigDecimal amount;
+
+    @NotNull
+    private Long itemId;
 }

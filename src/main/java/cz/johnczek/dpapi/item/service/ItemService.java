@@ -5,7 +5,9 @@ import cz.johnczek.dpapi.core.errorhandling.exception.DeliveryNotFoundRestExcept
 import cz.johnczek.dpapi.core.errorhandling.exception.FileNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotBuyableRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotFoundRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.NotEnoughAmountBidException;
 import cz.johnczek.dpapi.core.errorhandling.exception.PaymentNotFoundRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.UserAlreadyHasHighestBidException;
 import cz.johnczek.dpapi.core.errorhandling.exception.UserNotFoundRestException;
 import cz.johnczek.dpapi.item.dto.ItemDto;
 import cz.johnczek.dpapi.item.entity.ItemEntity;
@@ -135,7 +137,7 @@ public interface ItemService {
      * @throws DeliveryNotFoundRestException in case that chosen delivery was not found
      * @throws FileNotFoundRestException if given file identifier could not be found in the system
      */
-    Optional<ItemDto> createItem(ItemCreationRequest request);
+    Optional<ItemDto> createItem(@NonNull ItemCreationRequest request);
 
     /**
      * @param buyerId id of user we are searching for his cart items
@@ -153,10 +155,16 @@ public interface ItemService {
     void checkItemBuyability(long itemId);
 
     /**
-     * @see ItemBidService#findHighestBidByItemId(long)
-     * @return dto of current highest bid and current item state
+     * Method makes a bid on item if possible.
+     *
+     * @param itemId item for which we want to make a bid
+     * @param request request holding amount and user jwt token
+     * @param currentTime current time from BE system
+     * @return optional holding information about bid if bid was successfull, empty optional otherwise
+     * @throws BaseForbiddenRestException in case that user was not found by jwt token
+     * @throws ItemNotFoundRestException if item could not be found by id
+     * @throws UserAlreadyHasHighestBidException in case that user already owns the highest bid for item
+     * @throws NotEnoughAmountBidException in case that given amount is not enough to create highest bid
      */
-    ItemWsInfoResponse findHighestBidByItemId(long itemId);
-
     Optional<ItemWsInfoResponse> bid(long itemId, @NonNull ItemWsBidRequest request, LocalDateTime currentTime);
 }

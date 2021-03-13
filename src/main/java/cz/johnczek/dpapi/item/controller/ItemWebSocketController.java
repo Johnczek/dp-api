@@ -30,15 +30,8 @@ public class ItemWebSocketController {
 
     private final ItemService itemService;
 
-    @MessageMapping("/ws-item/update/{itemId}")
-    @SendTo("/ws-item/{itemId}/highest-bid")
-    public ResponseEntity<ItemWsInfoResponse> getHighestBidDetail(@DestinationVariable("itemId") long itemId) {
-
-        return new ResponseEntity<>(itemService.findHighestBidByItemId(itemId), HttpStatus.OK);
-    }
-
-    @MessageMapping("/ws-item/bid/{itemId}")
-    @SendTo("/ws-item/{itemId}/highest-bid")
+    @MessageMapping("/ws-item-in/bid/{itemId}")
+    @SendTo("/ws-item-out/highest-bid/{itemId}")
     public ResponseEntity<ItemWsInfoResponse> bid(@DestinationVariable("itemId") long itemId,
                                                                   @RequestBody @NonNull @Valid ItemWsBidRequest request) {
 

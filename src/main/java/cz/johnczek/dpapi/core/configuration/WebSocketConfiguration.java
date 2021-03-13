@@ -18,11 +18,11 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/ws-item");
+        registry.enableSimpleBroker("/ws-item-in");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws-item").setAllowedOrigins("http://localhost:4200", "/**").withSockJS();
+        registry.addEndpoint("/ws-item-out").setAllowedOrigins("http://localhost:4200").withSockJS();
     }
 }

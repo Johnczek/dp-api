@@ -130,4 +130,6 @@ public interface UserService {
      * @throws UserNotFoundRestException in case that user is not present in system
      */
     Optional<UserEntity> findEntityById(long userId);
+
+    Optional<UserDto> findUserByEmail(@NonNull String userEmailFromToken);
 }

@@ -261,6 +261,15 @@ public class UserServiceImpl implements UserService {
         return Optional.of(user);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<UserDto> findUserByEmail(@NonNull String userEmailFromToken) {
+
+        Optional<UserEntity> userOpt = userRepository.findByUserEmail(userEmailFromToken);
+
+        return userOpt.map(userMapper::entityToDto);
+    }
+
     /**
      * Method checks if currently logged person has right to edit user with given id
      *

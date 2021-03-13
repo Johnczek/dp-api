@@ -13,6 +13,7 @@ import cz.johnczek.dpapi.core.errorhandling.exception.UserAlreadyHasHighestBidEx
 import cz.johnczek.dpapi.core.errorhandling.exception.UserNotFoundRestException;
 import cz.johnczek.dpapi.core.persistence.AbstractIdBasedEntity;
 import cz.johnczek.dpapi.core.security.SecurityUtils;
+import cz.johnczek.dpapi.core.security.jwt.JwtUtils;
 import cz.johnczek.dpapi.delivery.dto.DeliveryDto;
 import cz.johnczek.dpapi.delivery.entity.DeliveryEntity;
 import cz.johnczek.dpapi.delivery.service.DeliveryService;
@@ -48,6 +49,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -74,6 +76,8 @@ public class ItemServiceImpl implements ItemService {
     private final FileService fileService;
 
     private final ItemMapper itemMapper;
+
+    private final JwtUtils jwtUtils;
 
     @Override
     @Transactional(readOnly = true)
@@ -172,7 +176,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public Optional<ItemDto> createItem(ItemCreationRequest request) {
+    public Optional<ItemDto> createItem(@NonNull @Valid ItemCreationRequest request) {
 
         ItemEntity item = itemMapper.creationRequestToEntity(request);
         item.setState(ItemState.ACTIVE);
@@ -249,23 +253,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public ItemWsInfoResponse findHighestBidByItemId(long itemId) {
-
-        Optional<ItemHighestBidDto> highestBidDtoOpt = itemBidService.findHighestBidByItemId(itemId);
-        Optional<ItemState> itemStateOpt = itemRepository.findStateByItemId(itemId);
-
-        return ItemWsInfoResponse.builder()
-                .itemHighestBidDto(highestBidDtoOpt.orElse(null))
-                .itemState(itemStateOpt.orElse(null))
-                .build();
-    }
-
-    @Override
     @Transactional
-    public Optional<ItemWsInfoResponse> bid(long itemId, @NonNull ItemWsBidRequest request, LocalDateTime currentTime) {
+    public Optional<ItemWsInfoResponse> bid(long itemId, @NonNull @Valid ItemWsBidRequest request, LocalDateTime currentTime) {
 
-        LoggedUserDetails loggedUser = SecurityUtils.getLoggedUser().orElseThrow(() -> {
+        String userEmailFromToken = jwtUtils.getUserEmailFromToken(request.getUserJwtToken());
+
+        UserDto userByEmail = userService.findUserByEmail(userEmailFromToken).orElseThrow(() -> {
             log.error("Bidding on item with id {} failed. Logged user not found", itemId);
 
             return new BaseForbiddenRestException();
@@ -287,7 +280,7 @@ public class ItemServiceImpl implements ItemService {
         }
 
         itemBidService.findHighestBidByItemId(itemId).ifPresentOrElse((ItemHighestBidDto dto) -> {
-            if (dto.getUserId().equals(loggedUser.getId())) {
+            if (dto.getUserId().equals(userByEmail.getId())) {
                 log.error("Bidding on item with id {} failed. Logged user with id is already owner of highest bid", itemId);
 
                 throw new UserAlreadyHasHighestBidException();
@@ -309,10 +302,10 @@ public class ItemServiceImpl implements ItemService {
             }
         });
 
-        UserEntity user = userService.findEntityById(loggedUser.getId()).orElseThrow(() -> {
-            log.error("Bidding on item with id {} failed. . Logged person with id {} not found", itemId, loggedUser.getId());
+        UserEntity user = userService.findEntityById(userByEmail.getId()).orElseThrow(() -> {
+            log.error("Bidding on item with id {} failed. . Logged person with id {} not found", itemId, userByEmail.getId());
 
-            return new UserNotFoundRestException(loggedUser.getId());
+            return new UserNotFoundRestException(userByEmail.getId());
         });
 
         return Optional.of(
@@ -325,7 +318,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public void changeItemDelivery(long itemId, @NonNull ItemChangeDeliveryRequest request) {
+    public void changeItemDelivery(long itemId, @NonNull @Valid ItemChangeDeliveryRequest request) {
 
         ItemEntity item = itemRepository.findByIdWithFieldsFetched(itemId).orElseThrow(() -> {
 
@@ -352,7 +345,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public void changeItemPaymentMethod(long itemId, @NonNull ItemChangePaymentRequest request) {
+    public void changeItemPaymentMethod(long itemId, @NonNull @Valid ItemChangePaymentRequest request) {
 
         ItemEntity item = itemRepository.findByIdWithFieldsFetched(itemId).orElseThrow(() -> {
 
@@ -410,7 +403,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public void changePicture(long itemId, @NonNull ItemChangePictureRequest request) {
+    public void changePicture(long itemId, @NonNull @Valid ItemChangePictureRequest request) {
 
         ItemEntity item = itemRepository.findByIdWithFieldsFetched(itemId).orElseThrow(() -> {
 
@@ -496,7 +489,7 @@ public class ItemServiceImpl implements ItemService {
      *
      * @param item item we want to perform check for
      */
-    private void checkItemEditability(@NonNull ItemEntity item) {
+    private static void checkItemEditability(@NonNull ItemEntity item) {
 
         if (item.getState() != ItemState.ACTIVE) {
             throw new ItemInNotEditableStateRestException();

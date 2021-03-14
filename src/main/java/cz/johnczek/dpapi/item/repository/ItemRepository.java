@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -34,6 +36,7 @@ public interface ItemRepository extends JpaRepository<ItemEntity, Long> {
             "left join fetch i.delivery " +
             "left join fetch i.payment " +
             "left join fetch i.seller " +
+            "left join fetch i.bids " +
             "where i.id = :itemId")
     Optional<ItemEntity> findByIdWithFieldsFetched(@Param("itemId") long itemId);
 
@@ -50,4 +53,11 @@ public interface ItemRepository extends JpaRepository<ItemEntity, Long> {
 
     @Query("select i.state from ItemEntity i where i.id = :itemId")
     Optional<ItemState> findStateByItemId(@Param("itemId") long itemId);
+
+    @Query("select distinct i " +
+            "from ItemEntity i " +
+            "left join fetch i.bids " +
+            "where i.state = cz.johnczek.dpapi.item.enums.ItemState.ACTIVE " +
+            "   and i.validTo <= :currentTime")
+    List<ItemEntity> findActiveWithExpiredValidToAndBidsFetched(@NonNull @Param("currentTime") LocalDateTime currentTime);
 }

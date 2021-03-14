@@ -131,5 +131,5 @@ public interface UserService {
      */
     Optional<UserEntity> findEntityById(long userId);
 
-    Optional<UserEntity> findUserByEmail(@NonNull String userEmailFromToken);
+    Optional<UserEntity> findUserByJwtToken(@NonNull String userJwtToken);
 }

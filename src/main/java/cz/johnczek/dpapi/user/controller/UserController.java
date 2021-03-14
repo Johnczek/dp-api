@@ -13,6 +13,8 @@ import cz.johnczek.dpapi.user.request.UserChangeRequest;
 import cz.johnczek.dpapi.user.response.JwtResponse;
 import cz.johnczek.dpapi.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -39,9 +41,12 @@ public class UserController {
 
     private final UserService userService;
 
+    @Operation(summary = "Method login user")
+    @ApiResponse(responseCode = "200", description = "Dto holding logged user details")
+    @ApiResponse(responseCode = "400", description = "In case that request is valid")
+    @ApiResponse(responseCode = "403", description = "In case of bad credentials or when user was not found")
     @PostMapping(value = "/login", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
-    @Operation(summary = "User login endpoint")
-    public ResponseEntity<JwtResponse> login(@Validated @Valid @RequestBody LoginRequest loginRequest, Errors errors) {
+    public ResponseEntity<JwtResponse> login(@Parameter(description = "Request holding login credentials") @Validated @Valid @RequestBody LoginRequest loginRequest, Errors errors) {
 
         if (errors.hasErrors()) {
             // TODO Complete validation
@@ -52,9 +57,11 @@ public class UserController {
                 userService.login(loginRequest.getEmail(), loginRequest.getPassword()), HttpStatus.OK);
     }
 
+    @Operation(summary = "Method registers user")
+    @ApiResponse(responseCode = "201", description = "In case that registration was successful")
+    @ApiResponse(responseCode = "400", description = "In case that request is not valid")
     @PostMapping(value = "/register", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
-    @Operation(summary = "User register endpoint")
-    public ResponseEntity<HttpStatus> register(@Validated @Valid @RequestBody RegisterRequest registerRequest, Errors errors) {
+    public ResponseEntity<HttpStatus> register(@Parameter(description = "Request holding new user data") @Validated @Valid @RequestBody RegisterRequest registerRequest, Errors errors) {
 
         if (errors.hasErrors()) {
             // TODO Complete validation
@@ -63,29 +70,37 @@ public class UserController {
 
         userService.register(registerRequest);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @Operation(summary = "Method retrieves login user detail")
+    @ApiResponse(responseCode = "200", description = "Dto holding logged user details")
+    @ApiResponse(responseCode = "404", description = "In case there is no logged user")
     @PostMapping(value = "/logged-user", produces = {MediaType.APPLICATION_JSON_VALUE})
-    @Operation(summary = "Getting logged person details")
     public ResponseEntity<JwtResponse> loggedUser() {
         return new ResponseEntity<>(userService.loggedUser(), HttpStatus.OK);
     }
 
+    @Operation(summary = "Method finds user by id")
+    @ApiResponse(responseCode = "200", description = "Dto holding user details")
+    @ApiResponse(responseCode = "404", description = "In case that user was not found")
     @GetMapping(value = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
-    @Operation(summary = "User dto retrieval")
-    public ResponseEntity<UserDto> findById(@PathVariable("id") long id) {
+    public ResponseEntity<UserDto> findById(@Parameter(description = "Id of user we want to find") @PathVariable("id") long id) {
         Optional<UserDto> userDto = userService.findById(id);
 
         return userDto.map(dto -> new ResponseEntity<>(dto, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
+    @Operation(summary = "Method updates user base data", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "If update was successful")
+    @ApiResponse(responseCode = "400", description = "In case data are not valid")
+    @ApiResponse(responseCode = "403", description = "In case that user is not logged in or has no right to update user with given id")
+    @ApiResponse(responseCode = "404", description = "In case that user was not found")
     @PatchMapping(value = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
-    @Operation(summary = "User data update endpoint", security = @SecurityRequirement(name = "bearerAuth"))
     public ResponseEntity<HttpStatus> patch(
-            @PathVariable("id") long id,
-            @Valid @RequestBody UserChangeRequest userChangeRequest,
+            @Parameter(description = "Id of user we want to update") @PathVariable("id") long id,
+            @Parameter(description = "New user data") @Valid @RequestBody UserChangeRequest userChangeRequest,
             Errors errors) {
 
         if (errors.hasErrors()) {
@@ -98,61 +113,85 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @Operation(summary = "Method updates users avatar", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "If update was successful")
+    @ApiResponse(responseCode = "400", description = "In case data are not valid")
+    @ApiResponse(responseCode = "403", description = "In case that user is not logged in or has no right to update user with given id")
+    @ApiResponse(responseCode = "404", description = "In case that user or image was not found")
     @PatchMapping(value = "/{id}/avatar")
-    @Operation(summary = "User avatar update endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<HttpStatus> updateUserAvatar(@PathVariable("id") long id,
-                                                       @Valid @RequestBody UserChangeAvatarRequest request) {
+    public ResponseEntity<HttpStatus> updateUserAvatar(@Parameter(description = "Id of user we want to update") @PathVariable("id") long id,
+                                                       @Parameter(description = "New picture identifier") @Valid @RequestBody UserChangeAvatarRequest request) {
 
         userService.updateUserAvatar(id, request);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @Operation(summary = "Method updates user password", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "If update was successful")
+    @ApiResponse(responseCode = "400", description = "In case data are not valid")
+    @ApiResponse(responseCode = "403", description = "In case that user is not logged in or has no right to update user with given id")
+    @ApiResponse(responseCode = "404", description = "In case that user was not found")
     @PatchMapping(value = "/{id}/password", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
-    @Operation(summary = "User password update endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<HttpStatus> updateUserPassword(@PathVariable("id") long id,
-                                                       @Valid @RequestBody UserChangePasswordRequest request) {
+    public ResponseEntity<HttpStatus> updateUserPassword(@Parameter(description = "Id of user we want to update") @PathVariable("id") long id,
+                                                         @Parameter(description = "New password") @Valid @RequestBody UserChangePasswordRequest request) {
 
         userService.updateUserPassword(id, request);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @Operation(summary = "Method adds bank account to user", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "201", description = "If creation was successful")
+    @ApiResponse(responseCode = "400", description = "In case data are not valid")
+    @ApiResponse(responseCode = "403", description = "In case that user is not logged in or has no right to update user with given id")
+    @ApiResponse(responseCode = "404", description = "In case that user was not found")
     @PostMapping(value = "/{userId}/bank-account", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
-    @Operation(summary = "User bank account add endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<BankAccountDto> addBankAccount(@PathVariable("userId") long userId,
-                                                         @Valid @RequestBody BankAccountCreationRequest request) {
+    public ResponseEntity<BankAccountDto> addBankAccount(@Parameter(description = "Id of user for which we want to add new bank account") @PathVariable("userId") long userId,
+                                                         @Parameter(description = "Data of new bank account") @Valid @RequestBody BankAccountCreationRequest request) {
 
         Optional<BankAccountDto> bankAccountDto = userService.addBankAccount(userId, request);
 
-        return bankAccountDto.map(dto -> new ResponseEntity<>(dto, HttpStatus.OK))
+        return bankAccountDto.map(dto -> new ResponseEntity<>(dto, HttpStatus.CREATED))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
+    @Operation(summary = "Method deletes bank account by given id from user", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "204", description = "If deletion was successful")
+    @ApiResponse(responseCode = "400", description = "In case data are not valid")
+    @ApiResponse(responseCode = "403", description = "In case that user is not logged in or has no right to update user with given id")
+    @ApiResponse(responseCode = "404", description = "In case that user was not found")
     @DeleteMapping(value = "/{userId}/bank-account/{bankAccountId}", produces = {MediaType.APPLICATION_JSON_VALUE})
-    @Operation(summary = "User bank account delete endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<HttpStatus> deleteBankAccount(@PathVariable("userId") long userId,
-                                                         @PathVariable("bankAccountId") long bankAccountId) {
+    public ResponseEntity<HttpStatus> deleteBankAccount(@Parameter(description = "Id of user from which we want to delete bank account") @PathVariable("userId") long userId,
+                                                        @Parameter(description = "Id of bank account we want to delete") @PathVariable("bankAccountId") long bankAccountId) {
 
         userService.deleteBankAccount(bankAccountId, userId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @Operation(summary = "Method adds address to user", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "201", description = "If addition  was successful")
+    @ApiResponse(responseCode = "400", description = "In case data are not valid")
+    @ApiResponse(responseCode = "403", description = "In case that user is not logged in or has no right to update user with given id")
+    @ApiResponse(responseCode = "404", description = "In case that user was not found")
     @PostMapping(value = "/{userId}/address", produces = {MediaType.APPLICATION_JSON_VALUE}, consumes = {MediaType.APPLICATION_JSON_VALUE})
-    @Operation(summary = "User address add endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<AddressDto> addAddress(@PathVariable("userId") long userId,
-                                                 @Valid @RequestBody AddressCreationRequest request) {
+    public ResponseEntity<AddressDto> addAddress(@Parameter(description = "Id of user for which we want to add address") @PathVariable("userId") long userId,
+                                                 @Parameter(description = "Data of new address") @Valid @RequestBody AddressCreationRequest request) {
 
         Optional<AddressDto> addressDto = userService.addAddress(userId, request);
 
-        return addressDto.map(dto -> new ResponseEntity<>(dto, HttpStatus.OK))
+        return addressDto.map(dto -> new ResponseEntity<>(dto, HttpStatus.CREATED))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
+    @Operation(summary = "Method deletes address from user", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "204", description = "If deletion was successful")
+    @ApiResponse(responseCode = "400", description = "In case data are not valid")
+    @ApiResponse(responseCode = "403", description = "In case that user is not logged in or has no right to update user with given id")
+    @ApiResponse(responseCode = "404", description = "In case that user was not found")
     @DeleteMapping(value = "/{userId}/address/{addressId}", produces = {MediaType.APPLICATION_JSON_VALUE})
-    @Operation(summary = "User address delete endpoint", security = @SecurityRequirement(name = "bearerAuth"))
-    public ResponseEntity<HttpStatus> deleteAddress(@PathVariable("userId") long userId,
-                                                         @PathVariable("addressId") long addressId) {
+    public ResponseEntity<HttpStatus> deleteAddress(@Parameter(description = "Id of user from which we want to delete address") @PathVariable("userId") long userId,
+                                                    @Parameter(description = "Id of address we want to delete") @PathVariable("addressId") long addressId) {
 
         userService.deleteAddress(addressId, userId);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

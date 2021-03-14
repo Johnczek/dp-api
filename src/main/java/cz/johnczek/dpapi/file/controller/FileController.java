@@ -4,7 +4,10 @@ import cz.johnczek.dpapi.core.errorhandling.exception.FileNotFoundRestException;
 import cz.johnczek.dpapi.file.enums.FileType;
 import cz.johnczek.dpapi.file.response.FileUploadResponse;
 import cz.johnczek.dpapi.file.service.FileService;
-import lombok.NonNull;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -32,9 +35,14 @@ public class FileController {
 
     private final FileService fileService;
 
+    @Operation(summary = "Method uploads file", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "201", description = "UUID identifier of newly uploaded image is returned")
+    @ApiResponse(responseCode = "400", description = "In case of generic error not listed below")
+    @ApiResponse(responseCode = "403", description = "In case that user is not logged in")
+    @ApiResponse(responseCode = "500", description = "In case of internal error while saving file to filesystem")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<FileUploadResponse> uploadFile(@RequestParam("file") MultipartFile file,
-                                                        @RequestParam(required = false) FileType fileType) {
+    public ResponseEntity<FileUploadResponse> uploadFile(@Parameter(description="File content in blob format") @RequestParam("file") MultipartFile file,
+                                                         @Parameter(description="Parameter for specifying file (avatar, item photo, ...)") @RequestParam(required = false) FileType fileType) {
 
         if (fileType == null) {
             fileType = FileType.UNKNOWN;
@@ -43,13 +51,18 @@ public class FileController {
         Optional<String> fileUUID = fileService.storeFile(file, fileType);
 
         return fileUUID
-                .map(s -> new ResponseEntity<>(new FileUploadResponse(s), HttpStatus.OK))
+                .map(s -> new ResponseEntity<>(new FileUploadResponse(s), HttpStatus.CREATED))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
 
     }
 
+    @Operation(summary = "Method returns file by given UUID")
+    @ApiResponse(responseCode = "200", description = "File by given identifier is returned")
+    @ApiResponse(responseCode = "404", description = "In case that file was not found")
+    @ApiResponse(responseCode = "500", description = "In case of internal error while retrieving file from filesystem")
     @GetMapping("/{uuid}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable @NonNull String uuid, ServletRequest request) {
+    public ResponseEntity<Resource> downloadFile(@Parameter(description="UUID identifier of file we want to retrieve")
+                                                     @PathVariable String uuid, ServletRequest request) {
 
         Resource resource = fileService.loadFile(uuid).orElseThrow(() -> {
             log.error("File with UUID {} could not be retrieved", uuid);

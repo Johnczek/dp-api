@@ -3,6 +3,7 @@ package cz.johnczek.dpapi.item.service;
 import cz.johnczek.dpapi.core.errorhandling.exception.BaseForbiddenRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.DeliveryNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.FileNotFoundRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.ItemIsNotActiveException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotBuyableRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.NotEnoughAmountBidException;
@@ -109,13 +110,6 @@ public interface ItemService {
     void changePicture(long itemId, @NonNull ItemChangePictureRequest request);
 
     /**
-     * Method sets item as topped
-     * @param itemId id of item we want to top
-     * @throws ItemNotFoundRestException in case that item could not be found
-     */
-    void topItem(long itemId);
-
-    /**
      * Method sets item state to {@link ItemState#CANCELLED} if its in state from which is can be cancelled.
      *
      * @param itemId id of item we want to cancel
@@ -164,6 +158,13 @@ public interface ItemService {
      * @throws ItemNotFoundRestException if item could not be found by id
      * @throws UserAlreadyHasHighestBidException in case that user already owns the highest bid for item
      * @throws NotEnoughAmountBidException in case that given amount is not enough to create highest bid
+     * @throws ItemIsNotActiveException in case that item is not in state ACTIVE or validTo is before current time
      */
-    Optional<ItemWsInfoResponse> bid(@NonNull ItemWsBidRequest request, LocalDateTime currentTime);
+    ItemWsInfoResponse bid(@NonNull ItemWsBidRequest request, LocalDateTime currentTime);
+
+    /**
+     * Method checks items expiration and sets corresponding states to these items.
+     * @return items that have been ended
+     */
+    List<ItemDto> checkAndProcessItemsExpiration();
 }

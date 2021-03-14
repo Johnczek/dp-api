@@ -5,6 +5,7 @@ import cz.johnczek.dpapi.core.errorhandling.exception.BaseForbiddenRestException
 import cz.johnczek.dpapi.core.errorhandling.exception.DeliveryNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.FileNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemInNotEditableStateRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.ItemIsNotActiveException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotBuyableRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.NotEnoughAmountBidException;
@@ -13,7 +14,6 @@ import cz.johnczek.dpapi.core.errorhandling.exception.UserAlreadyHasHighestBidEx
 import cz.johnczek.dpapi.core.errorhandling.exception.UserNotFoundRestException;
 import cz.johnczek.dpapi.core.persistence.AbstractIdBasedEntity;
 import cz.johnczek.dpapi.core.security.SecurityUtils;
-import cz.johnczek.dpapi.core.security.jwt.JwtUtils;
 import cz.johnczek.dpapi.delivery.dto.DeliveryDto;
 import cz.johnczek.dpapi.delivery.entity.DeliveryEntity;
 import cz.johnczek.dpapi.delivery.service.DeliveryService;
@@ -77,8 +77,6 @@ public class ItemServiceImpl implements ItemService {
     private final FileService fileService;
 
     private final ItemMapper itemMapper;
-
-    private final JwtUtils jwtUtils;
 
     @Override
     @Transactional(readOnly = true)
@@ -255,19 +253,16 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public Optional<ItemWsInfoResponse> bid(@NonNull @Valid ItemWsBidRequest request, LocalDateTime currentTime) {
+    public ItemWsInfoResponse bid(@NonNull @Valid ItemWsBidRequest request, LocalDateTime currentTime) {
 
-        String userEmailFromToken = jwtUtils.getUserEmailFromToken(request.getUserJwtToken());
         long itemId = request.getItemId();
-
-        UserEntity user = userService.findUserByEmail(userEmailFromToken).orElseThrow(() -> {
+        UserEntity user = userService.findUserByJwtToken(request.getUserJwtToken()).orElseThrow(() -> {
             log.error("Bidding on item with id {} failed. Logged user not found", itemId);
 
             return new BaseForbiddenRestException();
         });
 
         ItemEntity item = itemRepository.findByIdWithFieldsFetched(itemId).orElseThrow(() -> {
-
             log.error("Bidding on item with id {} failed. Item not found", itemId);
 
             return new ItemNotFoundRestException(itemId);
@@ -275,15 +270,16 @@ public class ItemServiceImpl implements ItemService {
 
         if (item.getState() != ItemState.ACTIVE) {
             log.error("Bidding on item with id {} failed. Item is not active", itemId);
-            return Optional.empty();
+
+            throw new ItemIsNotActiveException();
         }
 
         if (currentTime.isAfter(item.getValidTo())) {
             log.error("Bidding on item with id {} failed. Item validity ended", itemId);
 
-            // TODO run end item job
+            setItemStateAfterAuctionEnd(item);
 
-            return Optional.empty();
+            throw new ItemIsNotActiveException();
         }
 
         itemBidService.findHighestBidByItemId(itemId).ifPresentOrElse((ItemHighestBidDto dto) -> {
@@ -309,14 +305,41 @@ public class ItemServiceImpl implements ItemService {
             }
         });
 
-        return Optional.of(
-                ItemWsInfoResponse.builder()
+        return ItemWsInfoResponse.builder()
+                        .itemId(request.getItemId())
                         .itemState(item.getState())
-                        .itemHighestBidDto(itemBidService.createBid(item, user, request.getAmount(), currentTime).orElse(null))
-                        .state(WsBidState.SUCCESSFULL)
+                        .itemHighestBid(itemBidService.createBid(item, user, request.getAmount(), currentTime).orElse(null))
+                        .state(WsBidState.SUCCESS)
+                        .userRequestId(user.getId())
                         .message("Příhoz byl úspěšný")
-                        .build()
-        );
+                        .build();
+    }
+
+    @Override
+    @Transactional
+    public List<ItemDto> checkAndProcessItemsExpiration() {
+        List<ItemEntity> itemsToBeProcessed = itemRepository.findActiveWithExpiredValidToAndBidsFetched(LocalDateTime.now());
+
+        itemsToBeProcessed.forEach((this::setItemStateAfterAuctionEnd));
+
+        return itemsToBeProcessed.stream().map(this.itemMapper::entityToDto).collect(Collectors.toList());
+    }
+
+    /**
+     * Method sets the corresponding state to item that has been ended
+     * @param item item we want to change
+     */
+    private void setItemStateAfterAuctionEnd(@NonNull ItemEntity item) {
+
+        if (LocalDateTime.now().isBefore(item.getValidTo())) {
+            log.error("Setting state to ended auction for item {} failed. Valid to is still in future", item.getId());
+        }
+
+        if (CollectionUtils.isEmpty(item.getBids())) {
+            item.setState(ItemState.AUCTIONED_WITHOUT_BIDS);
+        } else {
+            item.setState(ItemState.AUCTIONED);
+        }
     }
 
 
@@ -428,23 +451,6 @@ public class ItemServiceImpl implements ItemService {
         });
 
         item.setPicture(file);
-    }
-
-    @Override
-    @Transactional
-    public void topItem(long itemId) {
-
-        ItemEntity item = itemRepository.findByIdWithFieldsFetched(itemId).orElseThrow(() -> {
-
-            log.error("Topping of item with id {} failed. Item not found", itemId);
-
-            return new ItemNotFoundRestException(itemId);
-        });
-
-        checkItemEditability(item);
-        checkLoggedPersonPermissionToItem(item);
-
-        item.setTopped(true);
     }
 
     @Override

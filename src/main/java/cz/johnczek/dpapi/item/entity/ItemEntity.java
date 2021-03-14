@@ -44,8 +44,6 @@ public class ItemEntity extends AbstractIdBasedEntity<Long> {
 
     private LocalDateTime validTo;
 
-    private boolean topped;
-
     private BigDecimal startingPrice;
 
     @ManyToOne(fetch = FetchType.LAZY)

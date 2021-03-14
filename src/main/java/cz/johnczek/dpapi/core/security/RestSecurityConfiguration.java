@@ -6,6 +6,7 @@ import cz.johnczek.dpapi.user.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -49,29 +50,26 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
     // TODO change configuration
     protected void configure(HttpSecurity http) throws Exception {
 
-//        http.cors().and().csrf().disable()
-//                .exceptionHandling()
-//                .authenticationEntryPoint(unauthorizedHandler)
-//                .and()
-//                .sessionManagement()
-//                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-//                .authorizeRequests()
-//                    .antMatchers("/user/login").permitAll()
-//                    .antMatchers("/user/register").permitAll()
-//                    .antMatchers("/user/{userId}/detail").permitAll()
-//                    .antMatchers("/swagger-ui/**").permitAll()
-//                    .antMatchers("/v3/**").permitAll()
-//                    .antMatchers("/hello/unauthorized").permitAll()
-//                    .anyRequest().authenticated();
-
         http.cors().and().csrf().disable()
                 .exceptionHandling()
                 .authenticationEntryPoint(unauthorizedHandler)
                 .and()
                 .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
                 .authorizeRequests()
-                .anyRequest().permitAll();
+                    .antMatchers("/user/logged-user").permitAll()
+                    .antMatchers("/user/login").permitAll()
+                    .antMatchers("/user/register").permitAll()
+                    .antMatchers(HttpMethod.GET, "/user/{userId}").permitAll()
+                    .antMatchers(HttpMethod.GET, "/item/{id}").permitAll()
+                    .antMatchers(HttpMethod.GET, "/item").permitAll()
+                    .antMatchers(HttpMethod.GET, "/item/seller/{sellerId}").permitAll()
+                    .antMatchers(HttpMethod.GET, "/file/{uuid}").permitAll()
+                    .antMatchers(HttpMethod.GET, "/ws**").permitAll()
+                    .antMatchers("/swagger-ui/**").permitAll()
+                    .antMatchers("/v3/**").permitAll()
+                    .antMatchers("/hello/unauthorized").permitAll()
+                    .anyRequest().authenticated();
 
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
     }

@@ -263,7 +263,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<UserEntity> findUserByEmail(@NonNull String userEmailFromToken) {
+    public Optional<UserEntity> findUserByJwtToken(@NonNull String userJwtToken) {
+
+        String userEmailFromToken = jwtUtils.getUserEmailFromToken(userJwtToken);
+
         return userRepository.findByUserEmail(userEmailFromToken);
     }
 

@@ -12,11 +12,15 @@ import lombok.Getter;
 @AllArgsConstructor
 public class ItemWsInfoResponse {
 
-    private ItemState itemState;
+    private final Long itemId;
 
-    private ItemHighestBidDto itemHighestBidDto;
+    private final ItemState itemState;
 
-    private WsBidState state;
+    private final ItemHighestBidDto itemHighestBid;
 
-    private String message;
+    private final WsBidState state;
+
+    private final String message;
+
+    private final Long userRequestId;
 }

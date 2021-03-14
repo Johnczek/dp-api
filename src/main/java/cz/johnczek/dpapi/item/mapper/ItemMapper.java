@@ -27,6 +27,12 @@ public interface ItemMapper {
                         UserDto seller,
                         ItemHighestBidDto itemHighestBid);
 
+    @Mapping(target = "pictureUUID", source = "source.picture.fileIdentifier")
+    @Mapping(target = "id", source = "source.id")
+    @Mapping(target = "name", source = "source.name")
+    @Mapping(target = "description", source = "source.description")
+    ItemDto entityToDto(ItemEntity source);
+
     ItemEntity creationRequestToEntity(ItemCreationRequest source);
 
 }

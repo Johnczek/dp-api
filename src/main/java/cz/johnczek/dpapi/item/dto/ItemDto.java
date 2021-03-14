@@ -28,8 +28,6 @@ public class ItemDto {
 
     private LocalDateTime validTo;
 
-    private boolean topped;
-
     private BigDecimal startingPrice;
 
     private ItemHighestBidDto itemHighestBid;

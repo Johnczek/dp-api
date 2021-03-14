@@ -6,10 +6,8 @@ import cz.johnczek.dpapi.core.errorhandling.exception.BaseForbiddenRestException
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotFoundRestException;
 import cz.johnczek.dpapi.core.security.SecurityUtils;
 import cz.johnczek.dpapi.item.dto.ItemDto;
-import cz.johnczek.dpapi.item.service.ItemBidService;
 import cz.johnczek.dpapi.item.service.ItemService;
 import cz.johnczek.dpapi.user.dto.LoggedUserDetails;
-import cz.johnczek.dpapi.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -3,6 +3,7 @@ package cz.johnczek.dpapi.cart.service;
 import cz.johnczek.dpapi.cart.response.CartItemResponse;
 import cz.johnczek.dpapi.cart.response.CartResponse;
 import cz.johnczek.dpapi.core.errorhandling.exception.BaseForbiddenRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotBuyableRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotFoundRestException;
 
 public interface CartService {
@@ -17,6 +18,8 @@ public interface CartService {
      * @param itemId id of item we want to find cart item for
      * @return object holding information about given cart item
      * @throws ItemNotFoundRestException in case that item with given id could not be found
+     * @throws BaseForbiddenRestException in case that logged user was not found
+     * @throws ItemNotBuyableRestException in case that item is not buyable for logged user
      */
     CartItemResponse getCartItemById(long itemId);
 }

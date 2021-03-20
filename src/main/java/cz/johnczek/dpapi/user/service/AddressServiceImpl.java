@@ -37,6 +37,7 @@ public class AddressServiceImpl implements AddressService {
 
         AddressEntity address = addressMapper.requestToEntity(request);
         address.setUser(user);
+
         return Optional.ofNullable(addressMapper.entityToDto(addressRepository.save(address)));
     }
 

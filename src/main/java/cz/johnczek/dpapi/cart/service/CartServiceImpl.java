@@ -39,13 +39,14 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional(readOnly = true)
     public CartItemResponse getCartItemById(long itemId) {
-        itemService.checkItemBuyability(itemId);
 
         ItemDto itemDto = itemService.findByItemId(itemId).orElseThrow(() -> {
             log.error("Getting basket item failed. Item with id {} not found", itemId);
 
             return new ItemNotFoundRestException(itemId);
         });
+
+        itemService.checkItemBuyability(itemId);
 
         return CartItemResponse.builder()
                 .cartItem(itemDto)

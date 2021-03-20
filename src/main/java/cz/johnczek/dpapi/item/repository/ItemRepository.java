@@ -51,9 +51,6 @@ public interface ItemRepository extends JpaRepository<ItemEntity, Long> {
             "  and ib.buyer_id = :buyerId and i.state = 'AUCTIONED'", nativeQuery = true)
     Set<Long> findAllIdsForCartByBuyerId(@Param("buyerId") long buyerId);
 
-    @Query("select i.state from ItemEntity i where i.id = :itemId")
-    Optional<ItemState> findStateByItemId(@Param("itemId") long itemId);
-
     @Query("select distinct i " +
             "from ItemEntity i " +
             "left join fetch i.bids " +

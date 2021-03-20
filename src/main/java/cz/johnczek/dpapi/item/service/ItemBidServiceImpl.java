@@ -59,7 +59,10 @@ public class ItemBidServiceImpl implements ItemBidService {
 
     @Override
     @Transactional
-    public Optional<ItemHighestBidDto> createBid(ItemEntity item, UserEntity user, @NonNull BigDecimal amount, LocalDateTime time) {
+    public Optional<ItemHighestBidDto> createBid(
+            @NonNull ItemEntity item,
+            @NonNull UserEntity user,
+            @NonNull BigDecimal amount, LocalDateTime time) {
 
         ItemBidEntity itemBid = new ItemBidEntity();
         itemBid.setItem(item);

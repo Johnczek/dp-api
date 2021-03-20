@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 public interface ItemBidRepository extends JpaRepository<ItemBidEntity, Long> {
@@ -16,4 +17,7 @@ public interface ItemBidRepository extends JpaRepository<ItemBidEntity, Long> {
             "from ItemBidEntity ib " +
             "where ib.item.id in (:itemIds)")
     Collection<ItemHighestBidDto> findBidsByItemIds(@NonNull @Param("itemIds") Set<Long> itemIds);
+
+    @Query("select ib from ItemBidEntity ib where ib.item.id = :itemId order by ib.id desc")
+    List<ItemBidEntity> findBidsByItemOrderByCreated(@Param("itemId") long itemId);
 }

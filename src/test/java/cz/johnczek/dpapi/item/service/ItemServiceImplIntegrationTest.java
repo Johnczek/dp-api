@@ -5,22 +5,31 @@ import cz.johnczek.dpapi.core.errorhandling.exception.BaseForbiddenRestException
 import cz.johnczek.dpapi.core.errorhandling.exception.DeliveryNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.FileNotFoundRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemInNotEditableStateRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.ItemIsNotActiveException;
+import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotBuyableRestException;
 import cz.johnczek.dpapi.core.errorhandling.exception.ItemNotFoundRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.NotEnoughAmountBidException;
 import cz.johnczek.dpapi.core.errorhandling.exception.PaymentNotFoundRestException;
+import cz.johnczek.dpapi.core.errorhandling.exception.UserAlreadyHasHighestBidException;
 import cz.johnczek.dpapi.delivery.entity.DeliveryEntity;
 import cz.johnczek.dpapi.file.entity.FileEntity;
 import cz.johnczek.dpapi.item.dto.ItemDto;
 import cz.johnczek.dpapi.item.entity.ItemEntity;
 import cz.johnczek.dpapi.item.enums.ItemState;
+import cz.johnczek.dpapi.item.repository.ItemBidRepository;
 import cz.johnczek.dpapi.item.repository.ItemRepository;
 import cz.johnczek.dpapi.item.request.ItemChangeDeliveryRequest;
 import cz.johnczek.dpapi.item.request.ItemChangePaymentRequest;
 import cz.johnczek.dpapi.item.request.ItemChangePictureRequest;
 import cz.johnczek.dpapi.item.request.ItemCreationRequest;
+import cz.johnczek.dpapi.item.request.ItemWsBidRequest;
 import cz.johnczek.dpapi.item.response.ItemCreationOptionsResponse;
 import cz.johnczek.dpapi.item.response.ItemEditOptionsResponse;
+import cz.johnczek.dpapi.item.response.ItemWsInfoResponse;
 import cz.johnczek.dpapi.payment.entity.PaymentEntity;
+import cz.johnczek.dpapi.user.response.JwtResponse;
 import cz.johnczek.dpapi.user.service.UserService;
+import io.jsonwebtoken.MalformedJwtException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +65,9 @@ class ItemServiceImplIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private ItemRepository itemRepository;
+
+    @Autowired
+    private ItemBidRepository itemBidRepository;
 
     @Nested
     class FindAllActive {
@@ -728,6 +740,393 @@ class ItemServiceImplIntegrationTest extends AbstractIntegrationTest {
 
             // cleanup
             itemRepository.deleteById(result.getId());
+        }
+    }
+
+    @Nested
+    class FindCartItemsForUser {
+
+        @Test
+        void invalidUserId_emptyList() {
+
+            List<ItemDto> result = instance.findCartItemsForUser(100L);
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void validUserWithNoWonAuctions_emptyList() {
+
+            List<ItemDto> result = instance.findCartItemsForUser(2L);
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void validUserWithWonAuction_listWithOneItem() {
+
+            long userId = 5L;
+            long itemId = 1L;
+            ItemEntity item = itemRepository.findById(itemId).orElse(null);
+            assertThat(item).isNotNull();
+            item.setState(ItemState.AUCTIONED);
+            itemRepository.save(item);
+
+            List<ItemDto> result = instance.findCartItemsForUser(userId);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getId()).isEqualTo(itemId);
+
+            // cleanup
+            item.setState(ItemState.ACTIVE);
+            itemRepository.save(item);
+        }
+    }
+
+    @Nested
+    class CheckItemBuyability {
+
+        @Test
+        void noLoggedUser_exceptionThrown() {
+
+            long itemId = 1L;
+            assertThrows(BaseForbiddenRestException.class,
+                    () -> instance.checkItemBuyability(itemId)
+            );
+        }
+
+        @Test
+        void itemWithNoBids_exceptionThrown() {
+
+            long itemId = 4L;
+
+            String userEmail = "user@user.com";
+            String userPassword = "user";
+            userService.login(userEmail, userPassword);
+
+            assertThrows(ItemNotBuyableRestException.class,
+                    () -> instance.checkItemBuyability(itemId)
+            );
+        }
+
+        @Test
+        void loggedUserNotOwningHighestBid_exceptionThrown() {
+
+            long itemId = 1L;
+
+            String userEmail = "user@user.com";
+            String userPassword = "user";
+            userService.login(userEmail, userPassword);
+
+            assertThrows(BaseForbiddenRestException.class,
+                    () -> instance.checkItemBuyability(itemId)
+            );
+        }
+    }
+
+    @Nested
+    class Bid {
+
+        @Test
+        void invalidJwtTokenInRequest_exceptionThrown() {
+
+            LocalDateTime currentTime = LocalDateTime.now();
+            long itemId = 1L;
+            ItemWsBidRequest request = new ItemWsBidRequest();
+            request.setItemId(itemId);
+            request.setUserJwtToken("InvalidToken");
+
+            assertThrows(MalformedJwtException.class,
+                    () -> instance.bid(request, currentTime)
+            );
+        }
+
+        @Test
+        void invalidItemId_exceptionThrown() {
+
+            LocalDateTime currentTime = LocalDateTime.now();
+            long itemId = 1000L;
+            ItemWsBidRequest request = new ItemWsBidRequest();
+
+            String userEmail = "user@user.com";
+            String userPassword = "user";
+            JwtResponse loggedUser = userService.login(userEmail, userPassword);
+
+            request.setItemId(itemId);
+            request.setUserJwtToken(loggedUser.getToken());
+
+            assertThrows(ItemNotFoundRestException.class,
+                    () -> instance.bid(request, currentTime)
+            );
+        }
+
+        @Test
+        void itemNotActive_exceptionThrown() {
+
+            LocalDateTime currentTime = LocalDateTime.now();
+            long itemId = 1L;
+            ItemWsBidRequest request = new ItemWsBidRequest();
+
+            ItemEntity item = itemRepository.findById(itemId).orElse(null);
+            assertThat(item).isNotNull();
+            item.setState(ItemState.AUCTIONED);
+            itemRepository.save(item);
+
+            String userEmail = "user@user.com";
+            String userPassword = "user";
+            JwtResponse loggedUser = userService.login(userEmail, userPassword);
+
+            request.setItemId(itemId);
+            request.setUserJwtToken(loggedUser.getToken());
+
+            assertThrows(ItemIsNotActiveException.class,
+                    () -> instance.bid(request, currentTime)
+            );
+
+            // cleanup
+            item.setState(ItemState.ACTIVE);
+            itemRepository.save(item);
+        }
+
+        @Test
+        void itemAlreadyExpired_exceptionThrown() {
+
+            LocalDateTime currentTime = LocalDateTime.now();
+            long itemId = 1L;
+            ItemWsBidRequest request = new ItemWsBidRequest();
+
+            ItemEntity item = itemRepository.findById(itemId).orElse(null);
+            assertThat(item).isNotNull();
+            LocalDateTime originalValidTo = item.getValidTo();
+            item.setValidTo(LocalDateTime.now().minusMinutes(100));
+            itemRepository.save(item);
+
+            String userEmail = "user@user.com";
+            String userPassword = "user";
+            JwtResponse loggedUser = userService.login(userEmail, userPassword);
+
+            request.setItemId(itemId);
+            request.setUserJwtToken(loggedUser.getToken());
+
+            assertThrows(ItemIsNotActiveException.class,
+                    () -> instance.bid(request, currentTime)
+            );
+
+            // cleanup
+            item.setValidTo(originalValidTo);
+            itemRepository.save(item);
+        }
+
+        @Test
+        void itemWithoutBidsAmountLessThanStartingPrice_exceptionThrown() {
+
+            LocalDateTime currentTime = LocalDateTime.now();
+            long itemId = 3L;
+            ItemWsBidRequest request = new ItemWsBidRequest();
+
+            ItemEntity item = itemRepository.findById(itemId).orElse(null);
+            assertThat(item).isNotNull();
+
+            String userEmail = "user@user.com";
+            String userPassword = "user";
+            JwtResponse loggedUser = userService.login(userEmail, userPassword);
+
+            request.setItemId(itemId);
+            request.setUserJwtToken(loggedUser.getToken());
+            request.setAmount(BigDecimal.ZERO);
+
+            assertThrows(NotEnoughAmountBidException.class,
+                    () -> instance.bid(request, currentTime)
+            );
+        }
+
+        @Test
+        void itemWithoutBidsAmountSameAsStartingPrice_exceptionThrown() {
+
+            LocalDateTime currentTime = LocalDateTime.now();
+            long itemId = 3L;
+            ItemWsBidRequest request = new ItemWsBidRequest();
+
+            ItemEntity item = itemRepository.findById(itemId).orElse(null);
+            assertThat(item).isNotNull();
+
+            String userEmail = "user@user.com";
+            String userPassword = "user";
+            JwtResponse loggedUser = userService.login(userEmail, userPassword);
+
+            request.setItemId(itemId);
+            request.setUserJwtToken(loggedUser.getToken());
+            request.setAmount(item.getStartingPrice());
+
+            assertThrows(NotEnoughAmountBidException.class,
+                    () -> instance.bid(request, currentTime)
+            );
+        }
+
+        @Test
+        void itemWithBidsAmountLowerThanHighestBid_exceptionThrown() {
+
+            LocalDateTime currentTime = LocalDateTime.now();
+            long itemId = 1L;
+            ItemWsBidRequest request = new ItemWsBidRequest();
+
+            ItemEntity item = itemRepository.findById(itemId).orElse(null);
+            assertThat(item).isNotNull();
+
+            String userEmail = "user@user.com";
+            String userPassword = "user";
+            JwtResponse loggedUser = userService.login(userEmail, userPassword);
+
+            request.setItemId(itemId);
+            request.setUserJwtToken(loggedUser.getToken());
+            request.setAmount(BigDecimal.ZERO);
+
+            assertThrows(NotEnoughAmountBidException.class,
+                    () -> instance.bid(request, currentTime)
+            );
+        }
+
+        @Test
+        void itemWithBidsAmountSameAsHighestBid_exceptionThrown() {
+
+            LocalDateTime currentTime = LocalDateTime.now();
+            long itemId = 1L;
+            ItemWsBidRequest request = new ItemWsBidRequest();
+
+            ItemEntity item = itemRepository.findById(itemId).orElse(null);
+            assertThat(item).isNotNull();
+
+            String userEmail = "user@user.com";
+            String userPassword = "user";
+            JwtResponse loggedUser = userService.login(userEmail, userPassword);
+
+            request.setItemId(itemId);
+            request.setUserJwtToken(loggedUser.getToken());
+            request.setAmount(BigDecimal.valueOf(106L));
+
+            assertThrows(NotEnoughAmountBidException.class,
+                    () -> instance.bid(request, currentTime)
+            );
+        }
+
+        @Test
+        void userAlreadyOwningHighestBid_exceptionThrown() {
+
+            LocalDateTime currentTime = LocalDateTime.now();
+            long itemId = 1L;
+            ItemWsBidRequest request = new ItemWsBidRequest();
+
+            ItemEntity item = itemRepository.findById(itemId).orElse(null);
+            assertThat(item).isNotNull();
+
+            String userEmail = "user4@user.com";
+            String userPassword = "user";
+            JwtResponse loggedUser = userService.login(userEmail, userPassword);
+
+            request.setItemId(itemId);
+            request.setUserJwtToken(loggedUser.getToken());
+            request.setAmount(BigDecimal.valueOf(1000L));
+
+            assertThrows(UserAlreadyHasHighestBidException.class,
+                    () -> instance.bid(request, currentTime)
+            );
+        }
+
+        @Test
+        void validState_bidCreated() {
+
+            LocalDateTime currentTime = LocalDateTime.now();
+            long itemId = 2L;
+            BigDecimal bidAmount = BigDecimal.valueOf(10000L);
+            ItemWsBidRequest request = new ItemWsBidRequest();
+
+            ItemEntity item = itemRepository.findById(itemId).orElse(null);
+            assertThat(item).isNotNull();
+
+            String userEmail = "user4@user.com";
+            String userPassword = "user";
+            JwtResponse loggedUser = userService.login(userEmail, userPassword);
+
+            request.setItemId(itemId);
+            request.setUserJwtToken(loggedUser.getToken());
+            request.setAmount(bidAmount);
+
+            ItemWsInfoResponse result = instance.bid(request, currentTime);
+            assertThat(result).isNotNull();
+
+            assertAll(
+                    () -> assertThat(result.getItemId()).isEqualTo(itemId),
+                    () -> assertThat(result.getItemHighestBid()).isNotNull(),
+                    () -> assertThat(result.getItemHighestBid().getItemId()).isEqualTo(itemId),
+                    () -> assertThat(result.getItemHighestBid().getUserId()).isEqualTo(loggedUser.getId()),
+                    () -> assertThat(result.getItemHighestBid().getAmount()).isEqualByComparingTo(bidAmount),
+                    () -> assertThat(result.getItemHighestBid().getTime()).isEqualTo(currentTime)
+            );
+
+            // cleanup
+            itemBidRepository.deleteAllByItemId(itemId);
+        }
+    }
+
+    @Nested
+    class CheckAndProcessItemsExpiration {
+
+        @Test
+        void noItemsForProcessing_emptyList() {
+
+            List<ItemDto> result = instance.checkAndProcessItemsExpiration();
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void oneItemWithoutBidsForProcessing_listWithOneItemWithCorrectState() {
+
+            long itemId = 3L;
+
+            ItemEntity item = itemRepository.findById(itemId).orElse(null);
+            assertThat(item).isNotNull();
+            assertThat(item.getBids()).isEmpty();
+            LocalDateTime originalValidTo = item.getValidTo();
+
+            item.setValidTo(LocalDateTime.now().minusMinutes(15));
+            itemRepository.save(item);
+
+            List<ItemDto> result = instance.checkAndProcessItemsExpiration();
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getId()).isEqualTo(itemId);
+            assertThat(result.get(0).getState()).isEqualTo(ItemState.AUCTIONED_WITHOUT_BIDS);
+
+            // cleanup
+            item.setValidTo(originalValidTo);
+            item.setState(ItemState.ACTIVE);
+            itemRepository.save(item);
+        }
+
+        @Test
+        void oneItemWithBidsForProcessing_listWithOneItemWithCorrectState() {
+
+            long itemId = 1L;
+
+            ItemEntity item = itemRepository.findById(itemId).orElse(null);
+            assertThat(item).isNotNull();
+            assertThat(item.getBids()).isNotEmpty();
+            LocalDateTime originalValidTo = item.getValidTo();
+
+            item.setValidTo(LocalDateTime.now().minusMinutes(15));
+            itemRepository.save(item);
+
+            List<ItemDto> result = instance.checkAndProcessItemsExpiration();
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getId()).isEqualTo(itemId);
+            assertThat(result.get(0).getState()).isEqualTo(ItemState.AUCTIONED);
+
+            // cleanup
+            item.setValidTo(originalValidTo);
+            item.setState(ItemState.ACTIVE);
+            itemRepository.save(item);
         }
     }
 }

@@ -4,6 +4,7 @@ import cz.johnczek.dpapi.item.dto.ItemHighestBidDto;
 import cz.johnczek.dpapi.item.entity.ItemBidEntity;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -20,4 +21,8 @@ public interface ItemBidRepository extends JpaRepository<ItemBidEntity, Long> {
 
     @Query("select ib from ItemBidEntity ib where ib.item.id = :itemId order by ib.id desc")
     List<ItemBidEntity> findBidsByItemOrderByCreated(@Param("itemId") long itemId);
+
+    @Modifying
+    @Query("delete from ItemBidEntity ib where ib.item.id = :itemId")
+    void deleteAllByItemId(@Param("itemId") long itemId);
 }

@@ -71,8 +71,8 @@ class AddressServiceImplIntegrationTest extends AbstractIntegrationTest {
             );
 
             // cleanup
-            addressRepository.delete(newAddress);
-            assertThat(addressRepository.findByUserId(6L)).isEmpty();
+            user.setAddresses(Collections.emptyList());
+            userRepository.save(user);
         }
     }
 

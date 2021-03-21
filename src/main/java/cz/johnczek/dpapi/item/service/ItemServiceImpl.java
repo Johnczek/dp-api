@@ -368,6 +368,7 @@ public class ItemServiceImpl implements ItemService {
         });
 
         item.setDelivery(delivery);
+        itemRepository.save(item);
     }
 
     @Override
@@ -451,6 +452,8 @@ public class ItemServiceImpl implements ItemService {
         });
 
         item.setPicture(file);
+
+        itemRepository.save(item);
     }
 
     @Override
@@ -468,6 +471,8 @@ public class ItemServiceImpl implements ItemService {
         checkLoggedPersonPermissionToItem(item);
 
         item.setState(ItemState.CANCELLED);
+
+        itemRepository.save(item);
     }
 
     /**

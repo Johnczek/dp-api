@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -99,6 +100,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public JwtResponse loggedUser() {
 
         LoggedUserDetails user = getLoggedPerson();
@@ -109,7 +111,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void register(@NonNull RegisterRequest registerRequest) {
+    public void register(@NonNull @Valid RegisterRequest registerRequest) {
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
             log.warn("Registration failed. User with email {} alreadz exists", registerRequest.getEmail());
             throw new UserAlreadyExistsRestException();
@@ -118,7 +120,6 @@ public class UserServiceImpl implements UserService {
         UserEntity user = userMapper.registerRequestToEntity(registerRequest);
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         user.setRegistered(LocalDateTime.now());
-        userRepository.save(user);
 
         RoleEntity role = roleService.findByCode(RoleEnum.USER)
                 .orElseThrow(() -> {
@@ -130,12 +131,14 @@ public class UserServiceImpl implements UserService {
         UserRoleEntity userRole = new UserRoleEntity();
         userRole.setUser(user);
         userRole.setRole(role);
-        userRoleRepository.save(userRole);
+
+        user.getRoles().add(userRole);
+        userRepository.save(user);
     }
 
     @Override
     @Transactional
-    public void patch(long id, @NonNull UserChangeRequest userChangeRequest) {
+    public void patch(long id, @NonNull @Valid UserChangeRequest userChangeRequest) {
 
         UserEntity user = checkUserPermissionEditability(id);
 
@@ -159,7 +162,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void updateUserAvatar(long id, @NonNull UserChangeAvatarRequest request) {
+    public void updateUserAvatar(long id, @NonNull @Valid UserChangeAvatarRequest request) {
 
         // TODO delete previous avatar
 
@@ -177,7 +180,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void updateUserPassword(long id, @NonNull UserChangePasswordRequest request) {
+    public void updateUserPassword(long id, @NonNull @Valid UserChangePasswordRequest request) {
 
         UserEntity user = checkUserPermissionEditability(id);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -185,7 +188,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Optional<BankAccountDto> addBankAccount(long userId, @NonNull BankAccountCreationRequest request) {
+    public Optional<BankAccountDto> addBankAccount(long userId, @NonNull @Valid BankAccountCreationRequest request) {
         UserEntity user = checkUserPermissionEditability(userId);
 
         return bankAccountService.addBankAccount(user, request);
@@ -201,7 +204,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Optional<AddressDto> addAddress(long userId, @NonNull AddressCreationRequest request) {
+    public Optional<AddressDto> addAddress(long userId, @NonNull @Valid AddressCreationRequest request) {
         UserEntity user = checkUserPermissionEditability(userId);
 
         return addressService.addAddress(user, request);
@@ -317,7 +320,7 @@ public class UserServiceImpl implements UserService {
      * @param user user data
      * @return filled response object
      */
-    private JwtResponse getJwtResponse(@NonNull String jwtToken, LoggedUserDetails user) {
+    private static JwtResponse getJwtResponse(@NonNull String jwtToken, LoggedUserDetails user) {
         return JwtResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())

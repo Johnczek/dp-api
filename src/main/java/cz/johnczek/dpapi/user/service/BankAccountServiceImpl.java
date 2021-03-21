@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -33,10 +34,13 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     @Transactional
-    public Optional<BankAccountDto> addBankAccount(@NonNull UserEntity user, @NonNull BankAccountCreationRequest request) {
+    public Optional<BankAccountDto> addBankAccount(@NonNull UserEntity user, @NonNull @Valid BankAccountCreationRequest request) {
 
         BankAccountEntity bankAccount = bankAccountMapper.requestToEntity(request);
         bankAccount.setUser(user);
+
+        user.getBankAccounts().add(bankAccount);
+
         return Optional.ofNullable(bankAccountMapper.entityToDto(bankAccountRepository.save(bankAccount)));
     }
 

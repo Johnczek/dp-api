@@ -68,8 +68,8 @@ class BankAccountServiceImplIntegrationTest extends AbstractIntegrationTest {
             );
 
             // cleanup
-            bankAccountRepository.delete(newBankAccount);
-            assertThat(bankAccountRepository.findByUserId(7L)).isEmpty();
+            user.setBankAccounts(Collections.emptyList());
+            userRepository.save(user);
         }
     }
 

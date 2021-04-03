@@ -11,7 +11,6 @@
 	<groupId>cz.johnczek</groupId>
 	<artifactId>dp-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
 	<name>dp-api</name>
 	<description>Spring Boot API for Diploma thesis application</description>
 

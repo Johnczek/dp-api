@@ -27,6 +27,10 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
                 .setHandshakeHandler(new DefaultHandshakeHandler(new TomcatRequestUpgradeStrategy()))
-                .setAllowedOrigins("http://localhost:4200", "chrome-extension://omalebghpgejjiaoknljcfmglgbpocdp");
+                .setAllowedOrigins(
+                        "http://localhost:4200",
+                        "http://localhost:80",
+                        "http://localhost",
+                        "chrome-extension://omalebghpgejjiaoknljcfmglgbpocdp");
     }
 }

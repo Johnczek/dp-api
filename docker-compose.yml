@@ -1,13 +1,36 @@
 version: "3.8"
 services:
+  dp:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    networks:
+      - api_network
+      - db_network
+    depends_on:
+      - postgres
   postgres:
     image: library/postgres:13.1-alpine
     ports:
       - "5440:5432"
     env_file:
-      - .env.example
+      - .env
+    networks:
+      - api_network
+      - db_network
     volumes:
       - pg_data:/var/lib/postgresql/data
 
 volumes:
   pg_data:
+  dp_data:
+
+networks:
+  api_network:
+    driver: bridge
+  db_network:
+    driver: bridge

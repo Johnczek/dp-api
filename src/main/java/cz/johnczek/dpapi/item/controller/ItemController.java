@@ -52,7 +52,7 @@ public class ItemController {
     @ApiResponse(responseCode = "200", description = "Dto holding new item is returned")
     @ApiResponse(responseCode = "400", description = "In case some data of item are not valid")
     @ApiResponse(responseCode = "403", description = "In case that user is not logged in")
-    @ApiResponse(responseCode = "404", description = "In case that either one of logged user, payment method, delivery method file was not found.")
+    @ApiResponse(responseCode = "404", description = "In case that either one of logged user, payment method, delivery method or file was not found.")
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ItemDto> createItem(@Parameter(description="Request holding data for new item") @NonNull @RequestBody @Valid ItemCreationRequest request) {
 

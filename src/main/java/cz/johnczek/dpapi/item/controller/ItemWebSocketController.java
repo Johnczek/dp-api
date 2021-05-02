@@ -109,7 +109,7 @@ public class ItemWebSocketController {
 
     }
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 1000)
     public void checkItemStateAndSendUpdate() {
         log.debug("Expiration job: started");
         List<ItemDto> items = itemService.checkAndProcessItemsExpiration();

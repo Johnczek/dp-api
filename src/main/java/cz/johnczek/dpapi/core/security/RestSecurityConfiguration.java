@@ -4,9 +4,9 @@ import cz.johnczek.dpapi.core.security.jwt.AuthEntryPointJwt;
 import cz.johnczek.dpapi.core.security.jwt.AuthTokenFilter;
 import cz.johnczek.dpapi.user.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -18,10 +18,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -83,14 +83,20 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        String[] allowedOriginsArray = Arrays.stream(this.allowedOrigins.split(",")).toArray(String[]::new);
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurerAdapter() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                String[] allowedOriginsArray = Arrays.stream("http://localhost:4200,https://johnczek.eu,http://johnczek.eu,https://holidaywatch.eu,http://holidaywatch.eu".split(","))
+                        .toArray(String[]::new);
 
-        registry.addMapping("/**")
-                .allowedOrigins(allowedOriginsArray)
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
+                registry.addMapping("/**")
+                        .allowedOrigins(allowedOriginsArray)
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
+            }
+        };
     }
 }

@@ -29,6 +29,9 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final PasswordEncoder passwordEncoder;
 
+    @Value("${system.cors.allowedOrigins:http://localhost:4200, https://johnczek.eu, http://johnczek.eu, https://holidaywatch.eu, http://holidaywatch.eu,}")
+    private String allowedOrigins;
+
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
         return new AuthTokenFilter();
@@ -72,5 +75,21 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
                     .anyRequest().authenticated();
 
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        String[] allowedOriginsArray = Arrays.stream(this.allowedOrigins.split(","))
+                .map(StringUtils::trim)
+                .filter(StringUtils::isNotBlank)
+                .toArray(String[]::new);
+
+        log.info("CORS: applied allowed origins: {}", Arrays.asList(allowedOriginsArray));
+
+        registry.addMapping("/**")
+                .allowedOrigins(allowedOriginsArray)
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
     }
 }

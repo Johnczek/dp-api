@@ -16,6 +16,11 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -29,7 +34,7 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${system.cors.allowedOrigins:http://localhost:4200, https://johnczek.eu, http://johnczek.eu, https://holidaywatch.eu, http://holidaywatch.eu,}")
+    @Value("${system.cors.allowedOrigins:http://localhost:4200,https://johnczek.eu,http://johnczek.eu,https://holidaywatch.eu,http://holidaywatch.eu}")
     private String allowedOrigins;
 
     @Bean
@@ -79,12 +84,7 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        String[] allowedOriginsArray = Arrays.stream(this.allowedOrigins.split(","))
-                .map(StringUtils::trim)
-                .filter(StringUtils::isNotBlank)
-                .toArray(String[]::new);
-
-        log.info("CORS: applied allowed origins: {}", Arrays.asList(allowedOriginsArray));
+        String[] allowedOriginsArray = Arrays.stream(this.allowedOrigins.split(",")).toArray(String[]::new);
 
         registry.addMapping("/**")
                 .allowedOrigins(allowedOriginsArray)

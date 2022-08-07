@@ -82,21 +82,4 @@ public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
     }
-
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurerAdapter() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                String[] allowedOriginsArray = Arrays.stream("http://localhost:4200,https://johnczek.eu,http://johnczek.eu,https://holidaywatch.eu,http://holidaywatch.eu".split(","))
-                        .toArray(String[]::new);
-
-                registry.addMapping("/**")
-                        .allowedOrigins(allowedOriginsArray)
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-                        .allowedHeaders("*")
-                        .allowCredentials(true);
-            }
-        };
-    }
 }
